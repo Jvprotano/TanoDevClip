@@ -22,5 +22,5 @@ ON clips(content_hash);
 CREATE INDEX IF NOT EXISTS idx_clips_clip_type 
 ON clips(clip_type);
 
-CREATE VIRTUAL TABLE IF NOT EXISTS clips_fts 
-USING fts5(content, title, content='clips', content_rowid='rowid');
+CREATE INDEX IF NOT EXISTS idx_clips_is_pinned
+ON clips(is_pinned);

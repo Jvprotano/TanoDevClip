@@ -8,8 +8,6 @@ public enum ClipType
     Url,
     Jwt,
     Guid,
-    Cpf,
-    Cnpj,
     Email,
     Code,
     Markdown,

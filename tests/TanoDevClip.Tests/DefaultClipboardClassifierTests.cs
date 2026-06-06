@@ -34,4 +34,24 @@ public sealed class DefaultClipboardClassifierTests
 
         Assert.Equal(ClipType.Url, result);
     }
+
+    [Fact]
+    public void Should_classify_guid()
+    {
+        var classifier = new DefaultClipboardClassifier();
+
+        var result = classifier.Classify("550e8400-e29b-41d4-a716-446655440000");
+
+        Assert.Equal(ClipType.Guid, result);
+    }
+
+    [Fact]
+    public void Should_classify_jwt()
+    {
+        var classifier = new DefaultClipboardClassifier();
+
+        var result = classifier.Classify("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.signature_123");
+
+        Assert.Equal(ClipType.Jwt, result);
+    }
 }

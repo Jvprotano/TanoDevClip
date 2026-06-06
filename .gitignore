@@ -486,9 +486,13 @@ node_modules/
 dist/
 
 # Local database
+tanodevclip.db
 *.db
 *.db-shm
 *.db-wal
+
+# Local dev scripts runtime state
+.dev-runtime/
 
 # VS Code
 .vscode/*
