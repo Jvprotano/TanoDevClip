@@ -424,7 +424,7 @@ public partial class MainWindow : Window
             name = "TanoDev Clip",
             version = "0.1.0",
             environment = "Development",
-            hotkey = "Ctrl+Shift+V"
+            hotkey = "Ctrl+Shift+J"
         };
     }
 
