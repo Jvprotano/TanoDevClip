@@ -1,0 +1,20 @@
+:root {
+  --terminal-bg: #070b0d;
+  --terminal-panel: #0b1114;
+  --terminal-panel-2: #0e171b;
+  --terminal-line: #1c3336;
+  --terminal-line-strong: #2e5d62;
+  --text: #d7f9e7;
+  --muted: #6e8e87;
+  --green: #55f991;
+  --cyan: #45d9ff;
+  --amber: #ffd166;
+  --red: #ff5f72;
+  --shadow: rgba(38, 255, 142, 0.16);
+  font-family:
+    "Cascadia Code", "Cascadia Mono", "Consolas", "SFMono-Regular", monospace;
+  color: var(--text);
+  background: var(--terminal-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}

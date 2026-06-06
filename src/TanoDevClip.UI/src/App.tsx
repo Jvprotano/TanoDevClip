@@ -1,54 +1,37 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { tanoDevBridge, type BridgeMessage } from "./bridge/tanoDevBridge";
-
-type AppInfo = {
-  name: string;
-  version: string;
-  environment: string;
-  hotkey: string;
-};
-
-type ClipItem = {
-  id: string;
-  content: string;
-  contentHash: string;
-  clipType: string;
-  title?: string | null;
-  sourceApp?: string | null;
-  sourceWindowTitle?: string | null;
-  sourceUrl?: string | null;
-  isPinned: boolean;
-  createdAt: string;
-  lastUsedAt?: string | null;
-  useCount: number;
-};
-
-type GuidFormat = "default" | "no-hyphens" | "uppercase";
-
-const clipTypes = [
-  "All",
-  "Text",
-  "Json",
-  "Sql",
-  "Url",
-  "Jwt",
-  "Guid",
-  "Email",
-  "Code",
-  "Markdown",
-  "Unknown",
-];
+import { ClipboardView } from "./components/ClipboardView";
+import { DevToolsView } from "./components/DevToolsView";
+import { clipTypes } from "./constants";
+import type {
+  AppInfo,
+  ClipItem,
+  GuidFormat,
+  LoremMode,
+  ToolKind,
+} from "./types";
 
 export default function App() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
+  const [bridgeAvailable] = useState(() => tanoDevBridge.isAvailable());
   const [clips, setClips] = useState<ClipItem[]>([]);
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [clipType, setClipType] = useState("All");
+  const [status, setStatus] = useState("Ready");
+  const [activeTool, setActiveTool] = useState<ToolKind>("guid");
   const [guidFormat, setGuidFormat] = useState<GuidFormat>("default");
-  const [guidValue, setGuidValue] = useState("");
+  const [stringLength, setStringLength] = useState(32);
+  const [includeUppercase, setIncludeUppercase] = useState(true);
+  const [includeLowercase, setIncludeLowercase] = useState(true);
+  const [includeNumbers, setIncludeNumbers] = useState(true);
+  const [includeSymbols, setIncludeSymbols] = useState(false);
+  const [loremMode, setLoremMode] = useState<LoremMode>("words");
+  const [loremAmount, setLoremAmount] = useState(46);
+  const [generatedValue, setGeneratedValue] = useState("");
 
   const requestClips = useCallback(
     (nextQuery = query, nextType = clipType) => {
@@ -73,11 +56,25 @@ export default function App() {
       if (message.type === "clips:list-result") {
         const payload = message.payload as { clips: ClipItem[] };
         setClips(payload.clips ?? []);
+        setStatus(`${payload.clips?.length ?? 0} clips`);
       }
 
-      if (message.type === "devtools:generate-guid-result") {
+      if (
+        message.type === "devtools:generate-guid-result" ||
+        message.type === "devtools:generate-result"
+      ) {
         const payload = message.payload as { value: string };
-        setGuidValue(payload.value);
+        setGeneratedValue(payload.value);
+      }
+
+      if (message.type === "clips:updated") {
+        const payload = message.payload as { reason?: string } | undefined;
+        setStatus(payload?.reason ? `Updated: ${payload.reason}` : "Updated");
+      }
+
+      if (message.type === "app:error") {
+        const payload = message.payload as { message?: string } | undefined;
+        setStatus(payload?.message ?? "Host error");
       }
 
       if (message.type === "app:focus-search") {
@@ -108,50 +105,121 @@ export default function App() {
 
   function handleCopyClip(id: string) {
     tanoDevBridge.send({ type: "clips:copy", payload: { id } });
+    setStatus("Copied");
   }
 
   function handleTogglePin(id: string) {
     tanoDevBridge.send({ type: "clips:toggle-pin", payload: { id } });
   }
 
-  function handleGenerateGuid() {
-    tanoDevBridge.send({
-      type: "devtools:generate-guid",
-      payload: { format: guidFormat },
-    });
+  function handleToolChange(tool: ToolKind) {
+    setActiveTool(tool);
+    handleGenerateTool();
+    // setGeneratedValue("");
   }
 
-  function handleCopyGuid() {
-    if (!guidValue) {
+  function handleGenerateTool() {
+    if (activeTool === "guid") {
+      tanoDevBridge.send({
+        type: "devtools:generate-guid",
+        payload: { format: guidFormat },
+      });
+      return;
+    }
+
+    if (activeTool === "string") {
+      tanoDevBridge.send({
+        type: "devtools:generate-string",
+        payload: {
+          length: stringLength,
+          includeUppercase,
+          includeLowercase,
+          includeNumbers,
+          includeSymbols,
+        },
+      });
       return;
     }
 
     tanoDevBridge.send({
-      type: "devtools:copy-guid",
-      payload: { content: guidValue },
+      type: "devtools:generate-lorem",
+      payload: {
+        mode: loremMode,
+        amount: loremAmount,
+      },
     });
+  }
+
+  function handleCopyGenerated() {
+    if (!generatedValue) {
+      return;
+    }
+
+    tanoDevBridge.send({
+      type: "devtools:copy-generated",
+      payload: {
+        content: generatedValue,
+        kind: activeTool,
+      },
+    });
+    setStatus(`${activeTool} copied`);
+  }
+
+  function handleHideApp() {
+    tanoDevBridge.send({ type: "app:hide" });
   }
 
   return (
     <div className="app-shell">
-      <header className="mini-titlebar">
+      <header
+        className="mini-titlebar"
+        onMouseDown={(event) => {
+          if (event.button !== 0) return;
+
+          const target = event.target as HTMLElement;
+          const isInteractiveElement = target.closest(
+            "button, input, textarea, select, a, [data-no-drag]",
+          );
+
+          if (isInteractiveElement) return;
+
+          tanoDevBridge.send({ type: "app:drag-window" });
+        }}
+      >
         <div className="brand">
           <div className="brand-icon">&gt;_</div>
           <div>
             <strong>{appInfo?.name ?? "TanoDev Clip"}</strong>
+            <span>
+              {appInfo?.hotkey ?? "Ctrl+Alt+Space"} |{" "}
+              {bridgeAvailable ? "host" : "preview"}
+            </span>
           </div>
+        </div>
+
+        <div className="title-actions">
+          <button
+            className={
+              isDevToolsOpen ? "config-button active" : "config-button"
+            }
+            onClick={() => setIsDevToolsOpen((current) => !current)}
+            title="Dev Tools"
+            aria-label="Open Dev Tools"
+          >
+            {"</>"}
+          </button>
+          <button
+            className="close-button"
+            onClick={handleHideApp}
+            title="Hide TanoDev Clip"
+            aria-label="Hide TanoDev Clip"
+          >
+            x
+          </button>
         </div>
       </header>
 
       <section className="search-strip">
-        <button
-          className={isDevToolsOpen ? "dev-button active" : "dev-button"}
-          onClick={() => setIsDevToolsOpen((current) => !current)}
-          title="Dev Tools"
-          aria-label="Toggle Dev Tools"
-        >
-          {"</>"}
-        </button>
         <input
           ref={searchInputRef}
           value={query}
@@ -177,7 +245,9 @@ export default function App() {
             </option>
           ))}
         </select>
-        <span>stdout: {clips.length}/100</span>
+        <span>
+          stdout: {clips.length}/100 | {status}
+        </span>
       </section>
 
       <main className="compact-main">
@@ -185,175 +255,39 @@ export default function App() {
           clips={clips}
           selectedClip={selectedClip}
           selectedClipId={selectedClip?.id ?? null}
+          isCollapsed={isCollapsed}
           onSelectClip={setSelectedClipId}
           onCopyClip={handleCopyClip}
           onTogglePin={handleTogglePin}
+          onCollapse={setIsCollapsed}
         />
 
         {isDevToolsOpen && (
           <DevToolsView
+            activeTool={activeTool}
             guidFormat={guidFormat}
-            guidValue={guidValue}
+            stringLength={stringLength}
+            includeUppercase={includeUppercase}
+            includeLowercase={includeLowercase}
+            includeNumbers={includeNumbers}
+            includeSymbols={includeSymbols}
+            loremMode={loremMode}
+            loremAmount={loremAmount}
+            generatedValue={generatedValue}
+            onToolChange={handleToolChange}
             onGuidFormatChange={setGuidFormat}
-            onGenerateGuid={handleGenerateGuid}
-            onCopyGuid={handleCopyGuid}
+            onStringLengthChange={setStringLength}
+            onIncludeUppercaseChange={setIncludeUppercase}
+            onIncludeLowercaseChange={setIncludeLowercase}
+            onIncludeNumbersChange={setIncludeNumbers}
+            onIncludeSymbolsChange={setIncludeSymbols}
+            onLoremModeChange={setLoremMode}
+            onLoremAmountChange={setLoremAmount}
+            onGenerate={handleGenerateTool}
+            onCopy={handleCopyGenerated}
           />
         )}
       </main>
     </div>
   );
-}
-
-function ClipboardView({
-  clips,
-  selectedClip,
-  selectedClipId,
-  onSelectClip,
-  onCopyClip,
-  onTogglePin,
-}: {
-  clips: ClipItem[];
-  selectedClip: ClipItem | null;
-  selectedClipId: string | null;
-  onSelectClip: (id: string) => void;
-  onCopyClip: (id: string) => void;
-  onTogglePin: (id: string) => void;
-}) {
-  return (
-    <>
-      <div className="clip-list" aria-label="Clipboard history">
-        {clips.length === 0 ? (
-          <div className="empty-state">
-            Copy text anywhere in Windows to fill the history.
-          </div>
-        ) : (
-          clips.map((clip) => (
-            <button
-              key={clip.id}
-              className={
-                clip.id === selectedClipId ? "clip-item active" : "clip-item"
-              }
-              onClick={() => onSelectClip(clip.id)}
-              onDoubleClick={() => onCopyClip(clip.id)}
-            >
-              <span className={`clip-type type-${clip.clipType.toLowerCase()}`}>
-                {clip.clipType}
-              </span>
-              <span className="clip-body">
-                <span className="clip-title">
-                  {clip.isPinned && <span className="pin-mark">PIN</span>}
-                  {clip.title || summarize(clip.content)}
-                </span>
-                <span className="clip-meta">
-                  {clip.sourceApp ?? "Unknown"} | {formatDate(clip.createdAt)}
-                </span>
-              </span>
-            </button>
-          ))
-        )}
-      </div>
-
-      <section className="clip-detail">
-        {selectedClip ? (
-          <>
-            <div className="detail-actions">
-              <span
-                className={`clip-type type-${selectedClip.clipType.toLowerCase()}`}
-              >
-                {selectedClip.clipType}
-              </span>
-              <button onClick={() => onTogglePin(selectedClip.id)}>
-                {selectedClip.isPinned ? "unpin" : "pin"}
-              </button>
-              <button
-                className="primary-button"
-                onClick={() => onCopyClip(selectedClip.id)}
-              >
-                copy
-              </button>
-            </div>
-            <pre>{selectedClip.content}</pre>
-          </>
-        ) : (
-          <div className="empty-state small">Select a clip to preview.</div>
-        )}
-      </section>
-    </>
-  );
-}
-
-function DevToolsView({
-  guidFormat,
-  guidValue,
-  onGuidFormatChange,
-  onGenerateGuid,
-  onCopyGuid,
-}: {
-  guidFormat: GuidFormat;
-  guidValue: string;
-  onGuidFormatChange: (format: GuidFormat) => void;
-  onGenerateGuid: () => void;
-  onCopyGuid: () => void;
-}) {
-  return (
-    <section className="dev-drawer">
-      <div className="drawer-title">
-        <strong>./tools.sh</strong>
-        <span>guid --format</span>
-      </div>
-
-      <div className="segmented-control">
-        <button
-          className={guidFormat === "default" ? "active" : ""}
-          onClick={() => onGuidFormatChange("default")}
-        >
-          default
-        </button>
-        <button
-          className={guidFormat === "no-hyphens" ? "active" : ""}
-          onClick={() => onGuidFormatChange("no-hyphens")}
-        >
-          compact
-        </button>
-        <button
-          className={guidFormat === "uppercase" ? "active" : ""}
-          onClick={() => onGuidFormatChange("uppercase")}
-        >
-          upper
-        </button>
-      </div>
-
-      <div className="guid-output">
-        {guidValue || "550e8400-e29b-41d4-a716-446655440000"}
-      </div>
-
-      <div className="tool-actions">
-        <button className="primary-button" onClick={onGenerateGuid}>
-          generate
-        </button>
-        <button disabled={!guidValue} onClick={onCopyGuid}>
-          copy
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function summarize(content: string) {
-  const compact = content.replace(/\s+/g, " ").trim();
-  return compact.length > 72 ? `${compact.slice(0, 72)}...` : compact;
-}
-
-function formatDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 }

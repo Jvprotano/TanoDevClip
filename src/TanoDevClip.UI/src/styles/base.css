@@ -1,0 +1,62 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--terminal-bg);
+}
+
+body {
+  min-height: 100vh;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.search-strip input,
+.filter-row select,
+.tool-options input,
+.tool-options select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--terminal-line-strong);
+  border-radius: 2px;
+  background: #05090b;
+  color: var(--text);
+  outline: none;
+  padding: 6px 7px;
+}
+
+.search-strip input:focus,
+.filter-row select:focus,
+.tool-options input:focus,
+.tool-options select:focus {
+  border-color: var(--green);
+  box-shadow:
+    0 0 0 1px rgba(85, 249, 145, 0.22),
+    0 0 16px var(--shadow);
+}
+
+.primary-button {
+  border-color: rgba(85, 249, 145, 0.72) !important;
+  background: rgba(85, 249, 145, 0.12) !important;
+  color: var(--green) !important;
+}

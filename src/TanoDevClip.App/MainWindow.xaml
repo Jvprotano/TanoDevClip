@@ -7,10 +7,11 @@
         Height="510"
         MinWidth="320"
         MinHeight="420"
+        WindowStyle="None"
+        ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
         Background="#070B0D"
         Closing="Window_Closing">
-        
     <Grid>
         <wv2:WebView2 x:Name="AppWebView" />
     </Grid>

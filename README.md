@@ -16,7 +16,7 @@ TanoDev Clip is a local-first clipboard manager for Windows, built for developer
 - WPF window hosted by WebView2 with a dark, VS Code-inspired UI.
 - React UI loaded from `http://localhost:5173` during development.
 - Simple future fallback for `src/TanoDevClip.UI/dist/index.html` when the Vite server is not available.
-- Global hotkey: `Ctrl+Shift+V` to show/hide the main window.
+- Global hotkey: `Ctrl+Alt+Space` to show/hide the main window.
 - Win32 clipboard listener using `AddClipboardFormatListener` and `WM_CLIPBOARDUPDATE`.
 - Automatic text capture with SHA256 content hash.
 - SQLite database at `%LocalAppData%/TanoDevClip/tanodevclip.db`.
@@ -63,10 +63,18 @@ For local debugging, start both the Vite UI and the WPF app from the repository 
 .\scripts\dev-start.ps1
 ```
 
-The script waits for Vite before opening the desktop app. Press `Ctrl+C` in that terminal, or close the desktop app, to stop both processes. If you started it with `-NoWait` or need to clean up a previous run, stop both manually with:
+The script waits for Vite before opening the desktop app. React changes use Vite HMR, and C# changes run through `dotnet watch` Hot Reload. If a C# edit cannot be hot-reloaded, `dotnet watch` restarts the desktop app automatically.
+
+Press `Ctrl+C` in that terminal to stop both processes. If you started it with `-NoWait` or need to clean up a previous run, stop both manually with:
 
 ```powershell
 .\scripts\dev-stop.ps1
+```
+
+To run without C# Hot Reload:
+
+```powershell
+.\scripts\dev-start.ps1 -NoHotReload
 ```
 
 You can also create a static UI build:
@@ -88,7 +96,7 @@ The MVP uses a simple `LIKE` search. The repository layer is intentionally small
 
 ## Hotkey
 
-- `Ctrl+Shift+V`: show the window and focus search.
+- `Ctrl+Alt+Space`: show the window and focus search.
 - If the window is visible and focused, the same hotkey hides it.
 
 If another app already owns the hotkey, TanoDev Clip continues running without crashing.

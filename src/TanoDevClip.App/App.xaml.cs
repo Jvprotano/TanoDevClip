@@ -7,9 +7,19 @@ using TanoDevClip.Infrastructure.Local;
 
 namespace TanoDevClip.App;
 
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
-    protected override async void OnStartup(StartupEventArgs e)
+    protected override void OnExit(System.Windows.ExitEventArgs e)
+    {
+        if (MainWindow is MainWindow mainWindow)
+        {
+            mainWindow.DisposeTrayIcon();
+        }
+
+        base.OnExit(e);
+    }
+
+    protected override async void OnStartup(System.Windows.StartupEventArgs e)
     {
         base.OnStartup(e);
 

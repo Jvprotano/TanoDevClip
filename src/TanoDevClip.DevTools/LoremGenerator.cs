@@ -1,5 +1,7 @@
 using System.Text;
 
+namespace TanoDevClip.DevTools;
+
 public static class LoremGenerator
 {
     private static readonly string[] Words =

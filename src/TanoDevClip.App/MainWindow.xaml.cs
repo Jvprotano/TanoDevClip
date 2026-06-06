@@ -13,6 +13,9 @@ using TanoDevClip.Core.Clipboard;
 using TanoDevClip.Core.Repositories;
 using TanoDevClip.DevTools;
 
+using Drawing = System.Drawing;
+using Forms = System.Windows.Forms;
+
 namespace TanoDevClip.App;
 
 public partial class MainWindow : Window
@@ -21,8 +24,12 @@ public partial class MainWindow : Window
     private const int HotKeyId = 0x5443;
     private const int WmClipboardUpdate = 0x031D;
     private const int WmHotKey = 0x0312;
+    private const int WmNcLButtonDown = 0x00A1;
+    private const int HtCaption = 2;
+    private const uint ModAlt = 0x0001;
     private const uint ModControl = 0x0002;
     private const uint ModShift = 0x0004;
+    private const uint VkSpace = 0x20;
     private const uint VkV = 0x56;
 
     private readonly IClipRepository _clipRepository;
@@ -31,7 +38,9 @@ public partial class MainWindow : Window
     private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
     private HwndSource? _hwndSource;
+    private Forms.NotifyIcon? _trayIcon;
     private bool _hotKeyRegistered;
+    private bool _isExiting;
     private string? _lastCapturedHash;
     private string? _ignoreNextClipboardHash;
 
@@ -45,6 +54,7 @@ public partial class MainWindow : Window
         _guidGenerator = guidGenerator;
 
         InitializeComponent();
+        InitializeTrayIcon();
 
         Loaded += MainWindow_Loaded;
         SourceInitialized += MainWindow_SourceInitialized;
@@ -63,13 +73,14 @@ public partial class MainWindow : Window
         if (_hwndSource is not null)
         {
             AddClipboardFormatListener(_hwndSource.Handle);
-            _hotKeyRegistered = RegisterHotKey(_hwndSource.Handle, HotKeyId, ModControl | ModShift, VkV);
+            _hotKeyRegistered = RegisterHotKey(_hwndSource.Handle, HotKeyId, ModControl | ModAlt, VkSpace);
         }
     }
 
     private async Task InitializeWebViewAsync()
     {
         await AppWebView.EnsureCoreWebView2Async();
+        AppWebView.DefaultBackgroundColor = Drawing.Color.FromArgb(0x07, 0x0B, 0x0D);
 
         AppWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
         AppWebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
@@ -164,6 +175,14 @@ public partial class MainWindow : Window
                     });
                     break;
 
+                case "app:hide":
+                    Hide();
+                    break;
+
+                case "app:drag-window":
+                    DragBorderlessWindow();
+                    break;
+
                 case "clips:list":
                     await SendClipsListAsync(ReadClipSearchFilter(root));
                     break;
@@ -182,6 +201,20 @@ public partial class MainWindow : Window
 
                 case "devtools:copy-guid":
                     await CopyGeneratedGuidAsync(ReadPayloadString(root, "content"));
+                    break;
+
+                case "devtools:generate-string":
+                    await GenerateStringAsync(root);
+                    break;
+
+                case "devtools:generate-lorem":
+                    await GenerateLoremAsync(root);
+                    break;
+
+                case "devtools:copy-generated":
+                    await CopyGeneratedTextAsync(
+                        ReadPayloadString(root, "content"),
+                        ReadPayloadString(root, "kind"));
                     break;
             }
         }
@@ -258,6 +291,44 @@ public partial class MainWindow : Window
         });
     }
 
+    private async Task GenerateStringAsync(JsonElement root)
+    {
+        var length = Math.Clamp(ReadPayloadInt(root, "length") ?? 32, 1, 512);
+        var includeUppercase = ReadPayloadBool(root, "includeUppercase") ?? true;
+        var includeLowercase = ReadPayloadBool(root, "includeLowercase") ?? true;
+        var includeNumbers = ReadPayloadBool(root, "includeNumbers") ?? true;
+        var includeSymbols = ReadPayloadBool(root, "includeSymbols") ?? false;
+
+        var value = StringGenerator.GenerateRandomString(
+            length,
+            includeUppercase,
+            includeLowercase,
+            includeNumbers,
+            includeSymbols);
+
+        await SendGeneratedValueAsync(value);
+    }
+
+    private async Task GenerateLoremAsync(JsonElement root)
+    {
+        var mode = ReadPayloadString(root, "mode");
+        var amount = Math.Clamp(ReadPayloadInt(root, "amount") ?? 46, 1, 5000);
+        var value = mode == "characters"
+            ? LoremGenerator.GenerateByCharacters(amount)
+            : LoremGenerator.GenerateByWords(Math.Min(amount, 500));
+
+        await SendGeneratedValueAsync(value);
+    }
+
+    private Task SendGeneratedValueAsync(string value)
+    {
+        return SendMessageToUiAsync(new
+        {
+            type = "devtools:generate-result",
+            payload = new { value }
+        });
+    }
+
     private async Task CopyGeneratedGuidAsync(string? content)
     {
         if (string.IsNullOrWhiteSpace(content))
@@ -266,6 +337,29 @@ public partial class MainWindow : Window
         }
 
         var clip = CreateClipItem(content, ClipType.Guid, "Generated GUID", "TanoDev Clip", null);
+        await _clipRepository.SaveAsync(clip);
+        CopyTextToClipboard(content);
+        await NotifyClipsUpdatedAsync("devtool");
+        await SendClipsListAsync(new ClipSearchFilter());
+    }
+
+    private async Task CopyGeneratedTextAsync(string? content, string? kind)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return;
+        }
+
+        var clipType = kind == "guid" ? ClipType.Guid : ClipType.Text;
+        var title = kind switch
+        {
+            "guid" => "Generated GUID",
+            "string" => "Generated random string",
+            "lorem" => "Generated lorem ipsum",
+            _ => "Generated text"
+        };
+
+        var clip = CreateClipItem(content, clipType, title, "TanoDev Clip", null);
         await _clipRepository.SaveAsync(clip);
         CopyTextToClipboard(content);
         await NotifyClipsUpdatedAsync("devtool");
@@ -424,7 +518,7 @@ public partial class MainWindow : Window
             name = "TanoDev Clip",
             version = "0.1.0",
             environment = "Development",
-            hotkey = "Ctrl+Shift+J"
+            hotkey = "Ctrl+Alt+Space"
         };
     }
 
@@ -464,6 +558,22 @@ public partial class MainWindow : Window
         }
 
         return property.TryGetInt32(out var value) ? value : null;
+    }
+
+    private static bool? ReadPayloadBool(JsonElement root, string propertyName)
+    {
+        if (!root.TryGetProperty("payload", out var payload) ||
+            !payload.TryGetProperty(propertyName, out var property))
+        {
+            return null;
+        }
+
+        return property.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            _ => null
+        };
     }
 
     private static object ToPayload(ClipItem clip)
@@ -536,6 +646,13 @@ public partial class MainWindow : Window
 
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
+        if (!_isExiting)
+        {
+            e.Cancel = true;
+            Hide();
+            return;
+        }
+
         if (_hwndSource is not null)
         {
             RemoveClipboardFormatListener(_hwndSource.Handle);
@@ -547,6 +664,62 @@ public partial class MainWindow : Window
 
             _hwndSource.RemoveHook(WndProc);
         }
+    }
+
+    private void InitializeTrayIcon()
+    {
+        var menu = new Forms.ContextMenuStrip();
+        menu.Items.Add("Abrir", null, (_, _) => ShowFromTray());
+        menu.Items.Add("Sair", null, (_, _) => ExitFromTray());
+
+        _trayIcon = new Forms.NotifyIcon
+        {
+            Icon = System.Drawing.SystemIcons.Application,
+            Text = "TanoDev Clip",
+            ContextMenuStrip = menu,
+            Visible = true
+        };
+
+        _trayIcon.DoubleClick += (_, _) => ShowFromTray();
+    }
+
+    public void DisposeTrayIcon()
+    {
+        if (_trayIcon is null)
+        {
+            return;
+        }
+
+        _trayIcon.Visible = false;
+        _trayIcon.Dispose();
+        _trayIcon = null;
+    }
+
+    private void ShowFromTray()
+    {
+        Show();
+        WindowState = WindowState.Normal;
+        Activate();
+        _ = FocusSearchAsync();
+    }
+
+    private void ExitFromTray()
+    {
+        _isExiting = true;
+        DisposeTrayIcon();
+        System.Windows.Application.Current.Shutdown();
+    }
+
+    private void DragBorderlessWindow()
+    {
+        var handle = new WindowInteropHelper(this).Handle;
+        if (handle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        ReleaseCapture();
+        SendMessage(handle, WmNcLButtonDown, HtCaption, 0);
     }
 
     private sealed record ForegroundSource(string? ProcessName, string? WindowTitle);
@@ -571,4 +744,10 @@ public partial class MainWindow : Window
 
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+    [DllImport("user32.dll")]
+    private static extern bool ReleaseCapture();
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
 }

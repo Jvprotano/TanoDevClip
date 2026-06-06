@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [switch]$SkipInstall,
+    [switch]$NoHotReload,
     [switch]$NoWait,
     [int]$VitePort = 5173
 )
@@ -127,22 +128,42 @@ try {
 
     Wait-ForVite -Url $viteUrl
 
-    Write-Host "Starting WPF app..."
-    $appProcess = Start-Process `
-        -FilePath "dotnet" `
-        -ArgumentList @("run", "--project", $appProject) `
-        -WorkingDirectory $repoRoot `
-        -RedirectStandardOutput $appOut `
-        -RedirectStandardError $appErr `
-        -WindowStyle Hidden `
-        -PassThru
+    $appArguments = if ($NoHotReload) {
+        @("run", "--project", $appProject)
+    }
+    else {
+        @("watch", "--project", $appProject, "run")
+    }
+    $appProcessName = if ($NoHotReload) { "desktop" } else { "desktop-watch" }
+    $appStartLabel = if ($NoHotReload) { "Starting WPF app..." } else { "Starting WPF app with dotnet watch..." }
+
+    Write-Host $appStartLabel
+    $previousRestartOnRudeEdit = $env:DOTNET_WATCH_RESTART_ON_RUDE_EDIT
+    $previousSuppressEmojis = $env:DOTNET_WATCH_SUPPRESS_EMOJIS
+    $env:DOTNET_WATCH_RESTART_ON_RUDE_EDIT = "1"
+    $env:DOTNET_WATCH_SUPPRESS_EMOJIS = "1"
+
+    try {
+        $appProcess = Start-Process `
+            -FilePath "dotnet" `
+            -ArgumentList $appArguments `
+            -WorkingDirectory $repoRoot `
+            -RedirectStandardOutput $appOut `
+            -RedirectStandardError $appErr `
+            -WindowStyle Hidden `
+            -PassThru
+    }
+    finally {
+        $env:DOTNET_WATCH_RESTART_ON_RUDE_EDIT = $previousRestartOnRudeEdit
+        $env:DOTNET_WATCH_SUPPRESS_EMOJIS = $previousSuppressEmojis
+    }
 
     @{
         startedAt = (Get-Date).ToString("o")
         viteUrl = $viteUrl
         processes = @(
             @{ name = "vite"; pid = $viteProcess.Id }
-            @{ name = "desktop"; pid = $appProcess.Id }
+            @{ name = $appProcessName; pid = $appProcess.Id }
         )
         logs = @{
             viteOut = $viteOut
@@ -155,6 +176,9 @@ try {
     Write-Host "Local debug started."
     Write-Host "Vite PID: $($viteProcess.Id). Desktop PID: $($appProcess.Id)."
     Write-Host "Logs are in $runtimeDir."
+    if (-not $NoHotReload) {
+        Write-Host "React uses Vite HMR. C# uses dotnet watch Hot Reload and restarts on rude edits."
+    }
 
     if ($NoWait) {
         Write-Host "Processes will keep running. Stop them with scripts\dev-stop.ps1."

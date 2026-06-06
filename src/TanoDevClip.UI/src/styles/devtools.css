@@ -1,0 +1,109 @@
+.dev-drawer {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  border-top: 1px solid rgba(69, 217, 255, 0.5);
+  background: #071216;
+  padding: 7px;
+  box-shadow: 0 -10px 22px rgba(69, 217, 255, 0.05);
+}
+
+.drawer-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.drawer-title strong {
+  color: var(--green);
+  font-size: 12px;
+}
+
+.tool-tabs,
+.segmented-control,
+.tool-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.tool-tabs button,
+.segmented-control button,
+.tool-actions button {
+  flex: 1 1 0;
+  border: 1px solid var(--terminal-line-strong);
+  border-radius: 2px;
+  background: #05090b;
+  color: var(--muted);
+  padding: 5px 3px;
+  font-size: 11px;
+}
+
+.tool-tabs button:hover,
+.tool-tabs button.active,
+.segmented-control button:hover,
+.segmented-control button.active {
+  border-color: var(--amber);
+  background: rgba(255, 209, 102, 0.1);
+  color: var(--amber);
+}
+
+.tool-options {
+  display: grid;
+  grid-template-columns: 60px repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  align-items: center;
+}
+
+.tool-options label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.tool-options input[type="number"] {
+  height: 24px;
+  padding: 3px 5px;
+  color: var(--amber);
+}
+
+.tool-options input[type="checkbox"] {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--green);
+}
+
+.lorem-options {
+  grid-template-columns: 1fr 1fr;
+}
+
+.generated-output {
+  overflow: hidden;
+  border: 1px solid var(--terminal-line-strong);
+  border-radius: 2px;
+  background: #040708;
+  color: var(--amber);
+  padding: 6px;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.generated-output::before {
+  color: var(--muted);
+}
+
+.output-guid::before {
+  content: "uuid=";
+}
+
+.output-string::before {
+  content: "str=";
+}
+
+.output-lorem::before {
+  content: "txt=";
+}
