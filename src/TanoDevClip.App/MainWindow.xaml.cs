@@ -748,15 +748,12 @@ public partial class MainWindow : Window
     private void InitializeTrayIcon()
     {
         var menu = new Forms.ContextMenuStrip();
-        menu.Items.Add("Abrir", null, (_, _) => ShowFromTray());
-        menu.Items.Add("Sair", null, (_, _) => ExitFromTray());
+        menu.Items.Add("Open", null, (_, _) => ShowFromTray());
+        menu.Items.Add("Exit", null, (_, _) => ExitFromTray());
 
         var iconResource = System.Windows.Application.GetResourceStream(
             new Uri("pack://application:,,,/Assets/AppIcon.ico", UriKind.Absolute)
-        );
-
-        if (iconResource is null)
-            throw new InvalidOperationException("Tray icon resource not found.");
+        ) ?? throw new InvalidOperationException("Tray icon resource not found.");
 
         _trayIcon = new Forms.NotifyIcon
         {
