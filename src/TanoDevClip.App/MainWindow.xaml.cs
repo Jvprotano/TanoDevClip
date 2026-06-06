@@ -24,13 +24,24 @@ public partial class MainWindow : Window
     private const int HotKeyId = 0x5443;
     private const int WmClipboardUpdate = 0x031D;
     private const int WmHotKey = 0x0312;
+    private const int WmNcHitTest = 0x0084;
     private const int WmNcLButtonDown = 0x00A1;
     private const int HtCaption = 2;
+    private const int HtLeft = 10;
+    private const int HtRight = 11;
+    private const int HtTop = 12;
+    private const int HtTopLeft = 13;
+    private const int HtTopRight = 14;
+    private const int HtBottom = 15;
+    private const int HtBottomLeft = 16;
+    private const int HtBottomRight = 17;
+    private const double ResizeGripThickness = 8;
     private const uint ModAlt = 0x0001;
     private const uint ModControl = 0x0002;
     private const uint ModShift = 0x0004;
     private const uint VkSpace = 0x20;
     private const uint VkV = 0x56;
+    private const uint VkD = 0x44;
 
     private readonly IClipRepository _clipRepository;
     private readonly IClipboardClassifier _clipboardClassifier;
@@ -442,7 +453,16 @@ public partial class MainWindow : Window
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        if (msg == WmClipboardUpdate)
+        if (msg == WmNcHitTest)
+        {
+            var hitTest = HitTestResizeBorder(lParam);
+            if (hitTest is not null)
+            {
+                handled = true;
+                return new IntPtr(hitTest.Value);
+            }
+        }
+        else if (msg == WmClipboardUpdate)
         {
             _ = Dispatcher.InvokeAsync(CaptureClipboardTextAsync);
             handled = true;
@@ -454,6 +474,65 @@ public partial class MainWindow : Window
         }
 
         return IntPtr.Zero;
+    }
+
+    private int? HitTestResizeBorder(IntPtr lParam)
+    {
+        if (WindowState == WindowState.Maximized || ResizeMode == ResizeMode.NoResize)
+        {
+            return null;
+        }
+
+        var x = unchecked((short)((long)lParam & 0xFFFF));
+        var y = unchecked((short)(((long)lParam >> 16) & 0xFFFF));
+        var point = PointFromScreen(new System.Windows.Point(x, y));
+
+        var isLeft = point.X <= ResizeGripThickness;
+        var isRight = point.X >= ActualWidth - ResizeGripThickness;
+        var isTop = point.Y <= ResizeGripThickness;
+        var isBottom = point.Y >= ActualHeight - ResizeGripThickness;
+
+        if (isTop && isLeft)
+        {
+            return HtTopLeft;
+        }
+
+        if (isTop && isRight)
+        {
+            return HtTopRight;
+        }
+
+        if (isBottom && isLeft)
+        {
+            return HtBottomLeft;
+        }
+
+        if (isBottom && isRight)
+        {
+            return HtBottomRight;
+        }
+
+        if (isLeft)
+        {
+            return HtLeft;
+        }
+
+        if (isRight)
+        {
+            return HtRight;
+        }
+
+        if (isTop)
+        {
+            return HtTop;
+        }
+
+        if (isBottom)
+        {
+            return HtBottom;
+        }
+
+        return null;
     }
 
     private async void ToggleWindowFromHotKey()
@@ -672,9 +751,16 @@ public partial class MainWindow : Window
         menu.Items.Add("Abrir", null, (_, _) => ShowFromTray());
         menu.Items.Add("Sair", null, (_, _) => ExitFromTray());
 
+        var iconResource = System.Windows.Application.GetResourceStream(
+            new Uri("pack://application:,,,/Assets/AppIcon.ico", UriKind.Absolute)
+        );
+
+        if (iconResource is null)
+            throw new InvalidOperationException("Tray icon resource not found.");
+
         _trayIcon = new Forms.NotifyIcon
         {
-            Icon = System.Drawing.SystemIcons.Application,
+            Icon = new Drawing.Icon(iconResource.Stream),
             Text = "TanoDev Clip",
             ContextMenuStrip = menu,
             Visible = true

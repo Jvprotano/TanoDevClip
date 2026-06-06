@@ -83,10 +83,46 @@ export default function App() {
       }
     });
 
+    function handleKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement;
+
+      const isTypingSomewhere =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable;
+
+      const isCtrlD =
+        event.ctrlKey &&
+        !event.altKey &&
+        !event.shiftKey &&
+        !event.metaKey &&
+        event.key.toLowerCase() === "d";
+
+      if (isCtrlD) {
+        event.preventDefault();
+        setIsDevToolsOpen((current) => !current);
+        return;
+      }
+
+      if (isTypingSomewhere) return;
+      if (event.ctrlKey || event.altKey || event.metaKey) return;
+      if (event.key.length !== 1) return;
+
+      event.preventDefault();
+
+      searchInputRef.current?.focus();
+      setQuery((current) => current + event.key);
+    }
+
     tanoDevBridge.send({ type: "app:get-info" });
     requestClips();
 
-    return unsubscribe;
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      (unsubscribe(), window.removeEventListener("keydown", handleKeyDown));
+    };
   }, [requestClips]);
 
   const selectedClip = useMemo(
@@ -113,13 +149,24 @@ export default function App() {
   }
 
   function handleToolChange(tool: ToolKind) {
+    console.log("too change");
+    console.log(tool);
     setActiveTool(tool);
-    handleGenerateTool();
-    // setGeneratedValue("");
+    sendToolChange(tool);
   }
 
   function handleGenerateTool() {
-    if (activeTool === "guid") {
+    console.log("handle generate");
+    console.log(activeTool);
+
+    sendToolChange(activeTool);
+  }
+
+  function sendToolChange(tool: string) {
+    console.log("send tool");
+    console.log(tool);
+
+    if (tool === "guid") {
       tanoDevBridge.send({
         type: "devtools:generate-guid",
         payload: { format: guidFormat },
@@ -127,7 +174,7 @@ export default function App() {
       return;
     }
 
-    if (activeTool === "string") {
+    if (tool === "string") {
       tanoDevBridge.send({
         type: "devtools:generate-string",
         payload: {
@@ -169,6 +216,15 @@ export default function App() {
     tanoDevBridge.send({ type: "app:hide" });
   }
 
+  function handleOpenDevTools() {
+    setIsDevToolsOpen((current) => !current);
+
+    if (isDevToolsOpen) {
+      handleGenerateTool();
+      handleToolChange(activeTool);
+    }
+  }
+
   return (
     <div className="app-shell">
       <header
@@ -202,8 +258,8 @@ export default function App() {
             className={
               isDevToolsOpen ? "config-button active" : "config-button"
             }
-            onClick={() => setIsDevToolsOpen((current) => !current)}
-            title="Dev Tools"
+            onClick={handleOpenDevTools}
+            title="Dev Tools | Toggle Ctrl + D"
             aria-label="Open Dev Tools"
           >
             {"</>"}
