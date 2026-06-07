@@ -23,7 +23,7 @@
                             UseAeroCaptionButtons="False" />
     </shell:WindowChrome.WindowChrome>
 
-    <Grid>
-        <wv2:WebView2 x:Name="AppWebView" />
+    <Grid Background="#070B0D">
+        <wv2:WebView2 x:Name="AppWebView" Margin="8" />
     </Grid>
 </Window>

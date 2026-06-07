@@ -121,7 +121,8 @@ export default function App() {
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      (unsubscribe(), window.removeEventListener("keydown", handleKeyDown));
+      unsubscribe();
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [requestClips]);
 
