@@ -8,6 +8,7 @@ type ClipboardViewProps = {
   isCollapsed: boolean;
   onSelectClip: (id: string) => void;
   onCopyClip: (id: string) => void;
+  onPasteClip: (id: string) => void;
   onTogglePin: (id: string) => void;
   onCollapse: (isCollapsed: boolean) => void;
 };
@@ -19,6 +20,7 @@ export function ClipboardView({
   isCollapsed,
   onSelectClip,
   onCopyClip,
+  onPasteClip,
   onTogglePin,
   onCollapse,
 }: ClipboardViewProps) {
@@ -38,7 +40,7 @@ export function ClipboardView({
                 clip.id === selectedClipId ? "clip-item active" : "clip-item"
               }
               onClick={() => onSelectClip(clip.id)}
-              onDoubleClick={() => onCopyClip(clip.id)}
+              onDoubleClick={() => onPasteClip(clip.id)}
             >
               <span className={`clip-type type-${clip.clipType.toLowerCase()}`}>
                 {clip.clipType}

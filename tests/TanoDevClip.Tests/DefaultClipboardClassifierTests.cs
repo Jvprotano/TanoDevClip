@@ -1,57 +1,59 @@
 using TanoDevClip.Core.Classification;
 using TanoDevClip.Core.Clipboard;
 
-namespace TanoDevClip.Tests;
-
-public sealed class DefaultClipboardClassifierTests
+namespace TanoDevClip.Tests
 {
-    [Fact]
-    public void Should_classify_json()
+    public sealed class DefaultClipboardClassifierTests
     {
-        var classifier = new DefaultClipboardClassifier();
+        [Fact]
+        public void Should_classify_json()
+        {
+            var classifier = new DefaultClipboardClassifier();
 
-        var result = classifier.Classify("""{"name":"TanoDev"}""");
+            var result = classifier.Classify("""{"name":"TanoDev"}""");
 
-        Assert.Equal(ClipType.Json, result);
-    }
+            Assert.Equal(ClipType.Json, result);
+        }
 
-    [Fact]
-    public void Should_classify_sql()
-    {
-        var classifier = new DefaultClipboardClassifier();
+        [Fact]
+        public void Should_classify_sql()
+        {
+            var classifier = new DefaultClipboardClassifier();
 
-        var result = classifier.Classify("select * from users");
+            var result = classifier.Classify("select * from users");
 
-        Assert.Equal(ClipType.Sql, result);
-    }
+            Assert.Equal(ClipType.Sql, result);
+        }
 
-    [Fact]
-    public void Should_classify_url()
-    {
-        var classifier = new DefaultClipboardClassifier();
+        [Fact]
+        public void Should_classify_url()
+        {
+            var classifier = new DefaultClipboardClassifier();
 
-        var result = classifier.Classify("https://example.com");
+            var result = classifier.Classify("https://example.com");
 
-        Assert.Equal(ClipType.Url, result);
-    }
+            Assert.Equal(ClipType.Url, result);
+        }
 
-    [Fact]
-    public void Should_classify_guid()
-    {
-        var classifier = new DefaultClipboardClassifier();
+        [Fact]
+        public void Should_classify_guid()
+        {
+            var classifier = new DefaultClipboardClassifier();
 
-        var result = classifier.Classify("550e8400-e29b-41d4-a716-446655440000");
+            var result = classifier.Classify("550e8400-e29b-41d4-a716-446655440000");
 
-        Assert.Equal(ClipType.Guid, result);
-    }
+            Assert.Equal(ClipType.Guid, result);
+        }
 
-    [Fact]
-    public void Should_classify_jwt()
-    {
-        var classifier = new DefaultClipboardClassifier();
+        [Fact]
+        public void Should_classify_jwt()
+        {
+            var classifier = new DefaultClipboardClassifier();
 
-        var result = classifier.Classify("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.signature_123");
+            var result = classifier.Classify("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.signature_123");
 
-        Assert.Equal(ClipType.Jwt, result);
+            Assert.Equal(ClipType.Jwt, result);
+        }
     }
 }
+

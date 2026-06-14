@@ -1,23 +1,24 @@
 using Microsoft.Data.Sqlite;
 
-namespace TanoDevClip.Infrastructure.Database;
-
-public sealed class DatabaseConnectionFactory
+namespace TanoDevClip.Infrastructure.Database
 {
-    private readonly string _databasePath;
-
-    public DatabaseConnectionFactory(string databasePath)
+    public sealed class DatabaseConnectionFactory
     {
-        _databasePath = databasePath;
-    }
+        private readonly string _databasePath;
 
-    public SqliteConnection CreateConnection()
-    {
-        var connectionString = new SqliteConnectionStringBuilder
+        public DatabaseConnectionFactory(string databasePath)
         {
-            DataSource = _databasePath
-        }.ToString();
+            _databasePath = databasePath;
+        }
 
-        return new SqliteConnection(connectionString);
+        public SqliteConnection CreateConnection()
+        {
+            var connectionString = new SqliteConnectionStringBuilder
+            {
+                DataSource = _databasePath
+            }.ToString();
+
+            return new SqliteConnection(connectionString);
+        }
     }
 }

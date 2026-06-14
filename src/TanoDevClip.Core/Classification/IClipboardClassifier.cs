@@ -1,8 +1,9 @@
 using TanoDevClip.Core.Clipboard;
 
-namespace TanoDevClip.Core.Classification;
-
-public interface IClipboardClassifier
+namespace TanoDevClip.Core.Classification
 {
-    ClipType Classify(string content);
+    public interface IClipboardClassifier
+    {
+        ClipType Classify(string content);
+    }
 }

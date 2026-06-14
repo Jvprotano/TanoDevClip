@@ -20,6 +20,20 @@ export type ClipItem = {
   useCount: number;
 };
 
-export type ToolKind = "guid" | "string" | "lorem";
+export type ToolKind =
+  | "guid"
+  | "cpf"
+  | "cnpj"
+  | "lorem"
+  | "string"
+  | "jwt"
+  | "json"
+  | "base64"
+  | "url"
+  | "regex";
 export type GuidFormat = "default" | "no-hyphens" | "uppercase";
-export type LoremMode = "words" | "characters";
+
+export type ToolResult = {
+  status: "ok" | "error";
+  value: string;
+};

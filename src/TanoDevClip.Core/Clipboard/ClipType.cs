@@ -1,15 +1,17 @@
-namespace TanoDevClip.Core.Clipboard;
-
-public enum ClipType
+namespace TanoDevClip.Core.Clipboard
 {
-    Text,
-    Json,
-    Sql,
-    Url,
-    Jwt,
-    Guid,
-    Email,
-    Code,
-    Markdown,
-    Unknown
+    public enum ClipType
+    {
+        Text,
+        Json,
+        Sql,
+        Url,
+        Jwt,
+        Guid,
+        Email,
+        Code,
+        Markdown,
+        Unknown
+    }
 }
+

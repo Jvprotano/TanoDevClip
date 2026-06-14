@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { tanoDevBridge, type BridgeMessage } from "./bridge/tanoDevBridge";
 import { ClipboardView } from "./components/ClipboardView";
-import { DevToolsView } from "./components/DevToolsView";
+import { DevToolsView, type DevToolPayload } from "./components/DevToolsView";
 import { clipTypes } from "./constants";
 import type {
   AppInfo,
   ClipItem,
-  GuidFormat,
-  LoremMode,
   ToolKind,
+  ToolResult,
 } from "./types";
 
 export default function App() {
@@ -23,15 +22,10 @@ export default function App() {
   const [clipType, setClipType] = useState("All");
   const [status, setStatus] = useState("Ready");
   const [activeTool, setActiveTool] = useState<ToolKind>("guid");
-  const [guidFormat, setGuidFormat] = useState<GuidFormat>("default");
-  const [stringLength, setStringLength] = useState(32);
-  const [includeUppercase, setIncludeUppercase] = useState(true);
-  const [includeLowercase, setIncludeLowercase] = useState(true);
-  const [includeNumbers, setIncludeNumbers] = useState(true);
-  const [includeSymbols, setIncludeSymbols] = useState(false);
-  const [loremMode, setLoremMode] = useState<LoremMode>("words");
-  const [loremAmount, setLoremAmount] = useState(46);
-  const [generatedValue, setGeneratedValue] = useState("");
+  const [toolResult, setToolResult] = useState<ToolResult>({
+    status: "ok",
+    value: "",
+  });
 
   const requestClips = useCallback(
     (nextQuery = query, nextType = clipType) => {
@@ -59,12 +53,9 @@ export default function App() {
         setStatus(`${payload.clips?.length ?? 0} clips`);
       }
 
-      if (
-        message.type === "devtools:generate-guid-result" ||
-        message.type === "devtools:generate-result"
-      ) {
-        const payload = message.payload as { value: string };
-        setGeneratedValue(payload.value);
+      if (message.type === "devtools:run-result") {
+        const payload = message.payload as ToolResult;
+        setToolResult(payload);
       }
 
       if (message.type === "clips:updated") {
@@ -145,73 +136,33 @@ export default function App() {
     setStatus("Copied");
   }
 
+  function handlePasteClip(id: string) {
+    tanoDevBridge.send({ type: "clips:paste", payload: { id } });
+    setStatus("Pasted");
+  }
+
   function handleTogglePin(id: string) {
     tanoDevBridge.send({ type: "clips:toggle-pin", payload: { id } });
   }
 
-  function handleToolChange(tool: ToolKind) {
-    console.log("too change");
-    console.log(tool);
-    setActiveTool(tool);
-    sendToolChange(tool);
-  }
+  const handleRunDevTool = useCallback((payload: DevToolPayload) => {
+    tanoDevBridge.send({ type: "devtools:run", payload });
+  }, []);
 
-  function handleGenerateTool() {
-    console.log("handle generate");
-    console.log(activeTool);
-
-    sendToolChange(activeTool);
-  }
-
-  function sendToolChange(tool: string) {
-    console.log("send tool");
-    console.log(tool);
-
-    if (tool === "guid") {
-      tanoDevBridge.send({
-        type: "devtools:generate-guid",
-        payload: { format: guidFormat },
-      });
-      return;
-    }
-
-    if (tool === "string") {
-      tanoDevBridge.send({
-        type: "devtools:generate-string",
-        payload: {
-          length: stringLength,
-          includeUppercase,
-          includeLowercase,
-          includeNumbers,
-          includeSymbols,
-        },
-      });
-      return;
-    }
-
-    tanoDevBridge.send({
-      type: "devtools:generate-lorem",
-      payload: {
-        mode: loremMode,
-        amount: loremAmount,
-      },
-    });
-  }
-
-  function handleCopyGenerated() {
-    if (!generatedValue) {
+  const handleCopyGenerated = useCallback((content: string, kind: ToolKind) => {
+    if (!content) {
       return;
     }
 
     tanoDevBridge.send({
       type: "devtools:copy-generated",
       payload: {
-        content: generatedValue,
-        kind: activeTool,
+        content,
+        kind,
       },
     });
-    setStatus(`${activeTool} copied`);
-  }
+    setStatus(`${kind} copied`);
+  }, []);
 
   function handleHideApp() {
     tanoDevBridge.send({ type: "app:hide" });
@@ -219,11 +170,6 @@ export default function App() {
 
   function handleOpenDevTools() {
     setIsDevToolsOpen((current) => !current);
-
-    if (isDevToolsOpen) {
-      handleGenerateTool();
-      handleToolChange(activeTool);
-    }
   }
 
   return (
@@ -315,6 +261,7 @@ export default function App() {
           isCollapsed={isCollapsed}
           onSelectClip={setSelectedClipId}
           onCopyClip={handleCopyClip}
+          onPasteClip={handlePasteClip}
           onTogglePin={handleTogglePin}
           onCollapse={setIsCollapsed}
         />
@@ -322,25 +269,9 @@ export default function App() {
         {isDevToolsOpen && (
           <DevToolsView
             activeTool={activeTool}
-            guidFormat={guidFormat}
-            stringLength={stringLength}
-            includeUppercase={includeUppercase}
-            includeLowercase={includeLowercase}
-            includeNumbers={includeNumbers}
-            includeSymbols={includeSymbols}
-            loremMode={loremMode}
-            loremAmount={loremAmount}
-            generatedValue={generatedValue}
-            onToolChange={handleToolChange}
-            onGuidFormatChange={setGuidFormat}
-            onStringLengthChange={setStringLength}
-            onIncludeUppercaseChange={setIncludeUppercase}
-            onIncludeLowercaseChange={setIncludeLowercase}
-            onIncludeNumbersChange={setIncludeNumbers}
-            onIncludeSymbolsChange={setIncludeSymbols}
-            onLoremModeChange={setLoremMode}
-            onLoremAmountChange={setLoremAmount}
-            onGenerate={handleGenerateTool}
+            result={toolResult}
+            onToolChange={setActiveTool}
+            onRun={handleRunDevTool}
             onCopy={handleCopyGenerated}
           />
         )}

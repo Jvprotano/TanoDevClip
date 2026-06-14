@@ -1,17 +1,18 @@
-namespace TanoDevClip.Infrastructure.Local;
-
-public static class AppPaths
+namespace TanoDevClip.Infrastructure.Local
 {
-    public static string GetAppDataDirectory()
+    public static class AppPaths
     {
-        var localAppData = Environment.GetFolderPath(
-            Environment.SpecialFolder.LocalApplicationData);
+        public static string GetAppDataDirectory()
+        {
+            var localAppData = Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData);
 
-        return Path.Combine(localAppData, "TanoDevClip");
-    }
+            return Path.Combine(localAppData, "TanoDevClip");
+        }
 
-    public static string GetDatabasePath()
-    {
-        return Path.Combine(GetAppDataDirectory(), "tanodevclip.db");
+        public static string GetDatabasePath()
+        {
+            return Path.Combine(GetAppDataDirectory(), "tanodevclip.db");
+        }
     }
 }

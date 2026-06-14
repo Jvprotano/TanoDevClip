@@ -18,7 +18,8 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -34,7 +35,10 @@ button:disabled {
 .search-strip input,
 .filter-row select,
 .tool-options input,
-.tool-options select {
+.tool-options select,
+.tool-input,
+.regex-grid input,
+.regex-grid textarea {
   width: 100%;
   min-width: 0;
   border: 1px solid var(--terminal-line-strong);
@@ -48,7 +52,10 @@ button:disabled {
 .search-strip input:focus,
 .filter-row select:focus,
 .tool-options input:focus,
-.tool-options select:focus {
+.tool-options select:focus,
+.tool-input:focus,
+.regex-grid input:focus,
+.regex-grid textarea:focus {
   border-color: var(--green);
   box-shadow:
     0 0 0 1px rgba(85, 249, 145, 0.22),

@@ -1,73 +1,92 @@
-# React + TypeScript + Vite
+# TanoDevClip.UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite + TypeScript UI for TanoDev Clip.
 
-Currently, two official plugins are available:
+This project is the WebView2 front-end. It should stay focused on presentation, local UI state, keyboard handling and bridge messages to the native host.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Responsibilities
 
-## React Compiler
+- Render clipboard history, search, filters and clip details.
+- Render the DevTools panel and collect user input.
+- Send bridge messages through `window.chrome.webview.postMessage`.
+- Receive host messages and update UI state.
+- Provide a preview mode when the WebView bridge is unavailable.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Non-Responsibilities
 
-## Expanding the ESLint configuration
+- Do not implement clipboard capture, paste behavior or Win32 focus logic here.
+- Do not duplicate DevTools business rules here. Generators, validators and text transforms belong in `src/TanoDevClip.DevTools`.
+- Do not persist clipboard data directly from the UI.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Bridge
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+The bridge wrapper is:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+src/bridge/tanoDevBridge.ts
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Important outbound messages:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `app:get-info`
+- `app:hide`
+- `app:drag-window`
+- `clips:list`
+- `clips:copy`
+- `clips:paste`
+- `clips:toggle-pin`
+- `devtools:run`
+- `devtools:copy-generated`
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Important inbound messages:
+
+- `app:info`
+- `app:focus-search`
+- `app:error`
+- `clips:list-result`
+- `clips:updated`
+- `devtools:run-result`
+
+See the host implementation in `src/TanoDevClip.App/MainWindow.xaml.cs`.
+
+## DevTools UI
+
+`src/components/DevToolsView.tsx` owns the UI state for tool inputs and sends `devtools:run` payloads to the host. It intentionally does not compute CPF, CNPJ, JSON, JWT, Base64, URL or regex results itself.
+
+Tools that generate output without required input should auto-run when opened or when their generation options change:
+
+- GUID
+- CPF
+- CNPJ
+- Lorem Ipsum
+- Random string
+
+Tools that require user input should run only when the user clicks the relevant action:
+
+- JWT decode
+- JSON format/minify
+- Base64 encode/decode
+- URL encode/decode
+- Regex helper
+
+## Run
+
+```powershell
+npm install
+npm run dev
 ```
+
+The WPF app expects Vite at:
+
+```text
+http://localhost:5173
+```
+
+## Validate
+
+```powershell
+npm run build
+npm run lint
+```
+
+For visual or interaction changes, run the desktop app as well. The browser preview is useful for layout, but it does not exercise WebView2, clipboard capture or native paste behavior.

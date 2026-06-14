@@ -1,30 +1,30 @@
 using Microsoft.Data.Sqlite;
 
-namespace TanoDevClip.Infrastructure.Database;
-
-public sealed class DatabaseBootstrapper
+namespace TanoDevClip.Infrastructure.Database
 {
-    private readonly DatabaseConnectionFactory _connectionFactory;
-
-    public DatabaseBootstrapper(DatabaseConnectionFactory connectionFactory)
+    public sealed class DatabaseBootstrapper
     {
-        _connectionFactory = connectionFactory;
-    }
+        private readonly DatabaseConnectionFactory _connectionFactory;
 
-    public async Task InitializeAsync(CancellationToken cancellationToken = default)
-    {
-        await using var connection = _connectionFactory.CreateConnection();
-        await connection.OpenAsync(cancellationToken);
-
-        foreach (var statement in Schema.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        public DatabaseBootstrapper(DatabaseConnectionFactory connectionFactory)
         {
-            await using var command = connection.CreateCommand();
-            command.CommandText = statement;
-            await command.ExecuteNonQueryAsync(cancellationToken);
+            _connectionFactory = connectionFactory;
         }
-    }
 
-    private const string Schema = """
+        public async Task InitializeAsync(CancellationToken cancellationToken = default)
+        {
+            await using var connection = _connectionFactory.CreateConnection();
+            await connection.OpenAsync(cancellationToken);
+
+            foreach (var statement in Schema.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = statement;
+                await command.ExecuteNonQueryAsync(cancellationToken);
+            }
+        }
+
+        private const string Schema = """
         CREATE TABLE IF NOT EXISTS clips (
             id TEXT PRIMARY KEY,
             content TEXT NOT NULL,
@@ -52,4 +52,6 @@ public sealed class DatabaseBootstrapper
         CREATE INDEX IF NOT EXISTS idx_clips_is_pinned
         ON clips(is_pinned);
         """;
+    }
 }
+
