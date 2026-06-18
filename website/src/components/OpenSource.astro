@@ -1,79 +1,127 @@
 ---
+import { siteConfig } from '../config/site';
+
+const supportEnabled = Boolean(siteConfig.support.url);
 ---
 
-<section class="open-source">
+<section id="open-source" class="open-source" aria-labelledby="open-source-title">
   <div class="container">
     <div class="banner">
       <div class="content">
-        <h2 class="title mono">&lt;Open Source /&gt;</h2>
+        <p class="eyebrow mono"><span aria-hidden="true">&gt;</span> git clone tanodev-clip</p>
+        <h2 id="open-source-title" class="title">Open source by design</h2>
         <p class="description">
-          TanoDev Clip is released under the MIT License. You can inspect the source code, 
-          verify the local-first behavior, and contribute on GitHub.
+          TanoDev Clip is released under the MIT License. Inspect the source, verify its local-first
+          behavior, report problems, or contribute improvements on GitHub.
         </p>
       </div>
-      <a href="https://github.com/Jvprotano/TanoDevClip" class="button ghost">
-        View Repository
-      </a>
+
+      <div class="actions">
+        <a
+          href={siteConfig.repositoryUrl}
+          class="button"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          View repository
+          <span class="sr-only"> (opens in a new tab)</span>
+        </a>
+        <a
+          href={siteConfig.contributingUrl}
+          class="button"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Contribute
+          <span class="sr-only"> (opens in a new tab)</span>
+        </a>
+        {supportEnabled ? (
+          <a
+            href={siteConfig.support.url}
+            class="button button-support"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {siteConfig.support.label}
+            <span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        ) : (
+          <span
+            class="button button-support button-disabled support-placeholder"
+            aria-disabled="true"
+            title="Add a support URL in website/src/config/site.ts"
+          >
+            <span>{siteConfig.support.label}</span>
+            <small>link coming soon</small>
+          </span>
+        )}
+      </div>
     </div>
   </div>
 </section>
 
 <style>
   .open-source {
-    padding: var(--space-2xl) 0;
+    padding: var(--space-3xl) 0;
   }
-  
+
   .banner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+    align-items: center;
+    padding: var(--space-2xl);
     background: linear-gradient(135deg, var(--color-bg-panel), var(--color-bg-panel-secondary));
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-md);
-    padding: var(--space-2xl);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xl);
-    text-align: center;
-    align-items: center;
   }
-  
-  @media (min-width: 640px) {
-    .banner {
-      flex-direction: row;
-      text-align: left;
-      justify-content: space-between;
-    }
-  }
-  
+
   .content {
-    max-width: 500px;
+    max-width: 620px;
   }
-  
+
+  .eyebrow {
+    margin-bottom: var(--space-sm);
+    color: var(--color-accent);
+    font-size: 0.82rem;
+  }
+
   .title {
-    font-size: 1.25rem;
+    font-size: 1.6rem;
     color: var(--color-text);
     margin-bottom: var(--space-sm);
   }
-  
+
   .description {
     color: var(--color-text-muted);
-    line-height: 1.5;
+    line-height: 1.6;
   }
-  
-  .button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 20px;
-    border-radius: var(--radius-sm);
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .support-placeholder {
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .support-placeholder small {
+    color: var(--color-text-muted);
+    font-size: 0.65rem;
     font-weight: 500;
-    transition: all var(--transition-fast);
-    border: 1px solid var(--color-border-strong);
-    background-color: transparent;
-    color: var(--color-text);
-    white-space: nowrap;
   }
-  
-  .button.ghost:hover {
-    background-color: var(--color-bg-input);
-    border-color: var(--color-text-muted);
+
+  @media (min-width: 900px) {
+    .banner {
+      grid-template-columns: 1fr auto;
+    }
+
+    .actions {
+      max-width: 340px;
+      justify-content: flex-end;
+    }
   }
 </style>
