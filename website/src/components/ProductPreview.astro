@@ -21,10 +21,10 @@ const { appPreviewImage, appPreviewVideo } = siteConfig.media;
       <div class="window-content">
         {appPreviewVideo ? (
           <video
+            autoplay
+            loop
             class="preview-media"
-            controls
             muted
-            playsinline
             preload="metadata"
             poster={appPreviewImage ? withBase(appPreviewImage) : undefined}
           >

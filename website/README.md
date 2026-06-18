@@ -25,9 +25,9 @@ Edit:
 src/config/site.ts
 ```
 
-This file contains the download URL, repository links, contribution link, optional support URL, and optional media paths.
+This file contains the download URL, repository links, contribution link, support links, PIX data, and optional media paths.
 
-To enable the support button, set `siteConfig.support.url` to a real Buy Me a Coffee, Ko-fi, GitHub Sponsors, or equivalent page. While it is empty, the landing page shows an honest disabled placeholder instead of publishing a broken link.
+The support area uses `siteConfig.support.stripeUrl` for the Buy me a coffee button and `siteConfig.support.pix` for the QR Code plus PIX copia e cola. Place the QR Code image under `public/media/` and configure the relative path without a leading slash.
 
 ## Screenshots and videos
 

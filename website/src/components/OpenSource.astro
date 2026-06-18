@@ -1,7 +1,7 @@
 ---
-import { siteConfig } from '../config/site';
+import { siteConfig, withBase } from '../config/site';
 
-const supportEnabled = Boolean(siteConfig.support.url);
+const pixCodeId = 'pix-copy-code';
 ---
 
 <section id="open-source" class="open-source" aria-labelledby="open-source-title">
@@ -35,30 +35,98 @@ const supportEnabled = Boolean(siteConfig.support.url);
           Contribute
           <span class="sr-only"> (opens in a new tab)</span>
         </a>
-        {supportEnabled ? (
-          <a
-            href={siteConfig.support.url}
-            class="button button-support"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {siteConfig.support.label}
-            <span class="sr-only"> (opens in a new tab)</span>
-          </a>
-        ) : (
-          <span
-            class="button button-support button-disabled support-placeholder"
-            aria-disabled="true"
-            title="Add a support URL in website/src/config/site.ts"
-          >
-            <span>{siteConfig.support.label}</span>
-            <small>link coming soon</small>
-          </span>
-        )}
       </div>
+
+      <aside class="support-box" aria-label="Support TanoDev Clip">
+        <details class="support-menu">
+          <summary class="button button-support support-trigger">
+            {siteConfig.support.label}
+          </summary>
+
+          <div class="support-panel">
+            <p class="support-note">Support the project with PIX or card.</p>
+
+            <div class="support-options">
+              <div class="support-option pix-option">
+                <img
+                  class="pix-qr"
+                  src={withBase(siteConfig.support.pix.qrCodeImage)}
+                  alt="PIX QR Code for supporting TanoDev Clip"
+                  width="148"
+                  height="148"
+                  loading="lazy"
+                />
+                <div class="pix-actions">
+                  <p class="pix-label mono">PIX</p>
+                  <button
+                    type="button"
+                    class="button support-choice"
+                    data-copy-pix
+                    data-pix-code={siteConfig.support.pix.copyPasteCode}
+                    data-ready-label="Copy PIX Code"
+                    aria-describedby={pixCodeId}
+                  >
+                    Copy PIX Code
+                  </button>
+                  <p id={pixCodeId} class="pix-feedback" data-copy-feedback aria-live="polite"></p>
+                </div>
+              </div>
+
+              <a
+                href={siteConfig.support.stripeUrl}
+                class="button support-choice card-choice"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Pay with card
+                <span class="sr-only"> through Stripe (opens in a new tab)</span>
+              </a>
+            </div>
+          </div>
+        </details>
+      </aside>
     </div>
   </div>
 </section>
+
+<script is:inline>
+  const copyPixCode = async (code) => {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(code);
+      return;
+    }
+
+    throw new Error('Clipboard API unavailable');
+  };
+
+  document.querySelectorAll('[data-copy-pix]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const pixCode = button.getAttribute('data-pix-code') ?? '';
+      const readyLabel = button.getAttribute('data-ready-label') ?? button.textContent ?? '';
+      const supportOption = button.closest('.support-option');
+      const feedback = supportOption?.querySelector('[data-copy-feedback]');
+
+      try {
+        await copyPixCode(pixCode);
+        button.textContent = 'Copied';
+        if (feedback) {
+          feedback.textContent = 'PIX code copied.';
+        }
+      } catch {
+        if (feedback) {
+          feedback.textContent = 'Unable to copy. Scan the QR Code instead.';
+        }
+      }
+
+      window.setTimeout(() => {
+        button.textContent = readyLabel;
+        if (feedback) {
+          feedback.textContent = '';
+        }
+      }, 2400);
+    });
+  });
+</script>
 
 <style>
   .open-source {
@@ -103,25 +171,140 @@ const supportEnabled = Boolean(siteConfig.support.url);
     gap: var(--space-sm);
   }
 
-  .support-placeholder {
-    flex-direction: column;
-    gap: 1px;
+  .support-box {
+    display: grid;
+    width: 100%;
+    max-width: 420px;
   }
 
-  .support-placeholder small {
+  .support-menu {
+    position: relative;
+  }
+
+  .support-menu[open] .support-trigger {
+    border-color: var(--color-support);
+    box-shadow: 0 0 18px rgba(255, 221, 122, 0.12);
+  }
+
+  .support-trigger {
+    width: 100%;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .support-trigger::-webkit-details-marker {
+    display: none;
+  }
+
+  .support-panel {
+    display: grid;
+    gap: var(--space-md);
+    margin-top: var(--space-sm);
+    padding: var(--space-md);
+    border: 1px solid rgba(255, 221, 122, 0.24);
+    border-radius: var(--radius-md);
+    background:
+      linear-gradient(135deg, rgba(255, 221, 122, 0.07), transparent 58%),
+      var(--color-bg-input);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+  }
+
+  .support-note {
     color: var(--color-text-muted);
-    font-size: 0.65rem;
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+
+  .support-options {
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .support-option {
+    display: grid;
+    grid-template-columns: minmax(104px, 148px) 1fr;
+    gap: var(--space-md);
+    align-items: center;
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-sm);
+    background: rgba(5, 9, 11, 0.52);
+  }
+
+  .pix-qr {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border: 1px solid rgba(255, 221, 122, 0.34);
+    border-radius: var(--radius-sm);
+    background: #fff;
+  }
+
+  .pix-actions {
+    display: grid;
+    gap: var(--space-sm);
+    align-content: center;
+    min-width: 0;
+  }
+
+  .pix-label {
+    color: var(--color-support);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .pix-feedback {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
     font-weight: 500;
+  }
+
+  .support-choice {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 14px;
+    color: var(--color-support);
+    border-color: rgba(255, 221, 122, 0.34);
+  }
+
+  .support-choice:hover {
+    color: var(--color-support);
+    border-color: var(--color-support);
+  }
+
+  .card-choice {
+    background-color: rgba(69, 217, 255, 0.08);
+    border-color: rgba(69, 217, 255, 0.28);
+    color: var(--color-action);
+  }
+
+  .card-choice:hover {
+    color: var(--color-action-hover);
+    border-color: var(--color-action);
+  }
+
+  .pix-feedback {
+    min-height: 1.2em;
   }
 
   @media (min-width: 900px) {
     .banner {
-      grid-template-columns: 1fr auto;
+      grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
     }
 
     .actions {
       max-width: 340px;
-      justify-content: flex-end;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .support-option {
+      grid-template-columns: 1fr;
+    }
+
+    .pix-qr {
+      max-width: 180px;
     }
   }
 </style>
