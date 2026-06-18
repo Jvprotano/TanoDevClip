@@ -26,29 +26,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "24.x"
           cache: npm
           cache-dependency-path: ${{ env.BUILD_PATH }}/package-lock.json
-          
+
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
-        
+
       - name: Install dependencies
         working-directory: ${{ env.BUILD_PATH }}
         run: npm ci
-        
+
       - name: Build with Astro
         working-directory: ${{ env.BUILD_PATH }}
         run: |
           npm run build \
             --site "${{ steps.pages.outputs.origin }}" \
             --base "${{ steps.pages.outputs.base_path }}"
-            
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
