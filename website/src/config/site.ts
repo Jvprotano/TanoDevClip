@@ -26,6 +26,7 @@ export const siteConfig = {
 } as const;
 
 export function withBase(path = ""): string {
-  const base = import.meta.env.BASE_URL;
+  const configuredBase = import.meta.env.BASE_URL;
+  const base = configuredBase.endsWith("/") ? configuredBase : `${configuredBase}/`;
   return `${base}${path.replace(/^\/+/, "")}`;
 }
