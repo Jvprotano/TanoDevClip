@@ -1,22 +1,37 @@
 ---
-const downloadUrl = "https://github.com/Jvprotano/TanoDevClip/releases/latest/download/ProtanoSoftware.TanoDevClip-Setup.exe";
+import { siteConfig } from '../config/site';
 ---
 
-<section class="cta-section">
+<section class="cta-section" aria-labelledby="download-title">
   <div class="container cta-inner">
-    <h2 class="title mono"><span class="prompt">&gt;</span> Ready to run?</h2>
-    
+    <p class="status mono"><span aria-hidden="true">&gt;</span> ready_to_install=true</p>
+    <h2 id="download-title" class="title">Make your clipboard part of your development workflow.</h2>
+    <p class="description">Install TanoDev Clip for Windows or inspect the latest release before downloading.</p>
+
     <div class="actions">
-      <a href={downloadUrl} class="button primary large">
+      <a href={siteConfig.downloadUrl} class="button button-primary button-large">
         Download for Windows
       </a>
+      <a
+        href={siteConfig.latestReleaseUrl}
+        class="button button-large"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        View latest release
+        <span class="sr-only"> (opens in a new tab)</span>
+      </a>
     </div>
-    
-    <div class="secondary-links mono">
-      <a href="https://github.com/Jvprotano/TanoDevClip/releases/latest">View latest release</a>
-      <span class="separator">/</span>
-      <a href="https://github.com/Jvprotano/TanoDevClip">View source</a>
-    </div>
+
+    <a
+      class="source-link mono"
+      href={siteConfig.repositoryUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      View source on GitHub
+      <span class="sr-only"> (opens in a new tab)</span>
+    </a>
   </div>
 </section>
 
@@ -25,70 +40,51 @@ const downloadUrl = "https://github.com/Jvprotano/TanoDevClip/releases/latest/do
     padding: var(--space-4xl) 0;
     text-align: center;
   }
-  
+
   .cta-inner {
     display: flex;
     flex-direction: column;
     align-items: center;
   }
-  
+
+  .status {
+    margin-bottom: var(--space-sm);
+    color: var(--color-accent);
+    font-size: 0.82rem;
+  }
+
   .title {
-    font-size: 2rem;
+    max-width: 720px;
+    font-size: clamp(1.8rem, 4vw, 2.7rem);
     color: var(--color-text);
+    margin-bottom: var(--space-md);
+  }
+
+  .description {
+    max-width: 620px;
     margin-bottom: var(--space-xl);
-  }
-  
-  .prompt {
-    color: var(--color-accent);
-  }
-  
-  .actions {
-    margin-bottom: var(--space-lg);
-  }
-  
-  .button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 32px;
-    border-radius: var(--radius-sm);
-    font-weight: 500;
-    transition: all var(--transition-fast);
-    border: 1px solid var(--color-border-strong);
-  }
-  
-  .button.large {
-    font-size: 1.1rem;
-  }
-  
-  .button.primary {
-    background-color: var(--color-accent-muted);
-    border-color: var(--color-border-accent);
-    color: var(--color-accent);
-  }
-  
-  .button.primary:hover {
-    background-color: rgba(85, 249, 145, 0.2);
-    border-color: var(--color-accent);
-    box-shadow: var(--shadow-glow);
-    transform: translateY(-2px);
-  }
-  
-  .secondary-links {
-    display: flex;
-    gap: var(--space-md);
-    font-size: 0.9rem;
-  }
-  
-  .secondary-links a {
     color: var(--color-text-muted);
   }
-  
-  .secondary-links a:hover {
-    color: var(--color-action);
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
   }
-  
-  .separator {
-    color: var(--color-border-subtle);
+
+  .source-link {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .source-link:hover {
+    color: var(--color-action-hover);
+  }
+
+  @media (min-width: 640px) {
+    .actions {
+      flex-direction: row;
+    }
   }
 </style>
