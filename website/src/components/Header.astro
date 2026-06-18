@@ -1,0 +1,115 @@
+---
+const downloadUrl = "https://github.com/Jvprotano/TanoDevClip/releases/latest/download/ProtanoSoftware.TanoDevClip-Setup.exe";
+---
+
+<header class="header">
+  <div class="container header-inner">
+    <div class="brand">
+      <span class="prompt mono">&gt;</span>
+      <span class="name">TanoDev Clip</span>
+    </div>
+    
+    <nav class="nav" aria-label="Main Navigation">
+      <ul class="nav-list">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#devtools">DevTools</a></li>
+        <li><a href="https://github.com/Jvprotano/TanoDevClip" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </nav>
+    
+    <div class="actions">
+      <a href={downloadUrl} class="button primary" aria-label="Download TanoDev Clip for Windows">
+        Download <span class="os">Windows</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: var(--header-height);
+    background-color: rgba(7, 11, 13, 0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  
+  .header-inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.01em;
+  }
+  
+  .prompt {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+  
+  .nav {
+    display: none;
+  }
+  
+  @media (min-width: 768px) {
+    .nav {
+      display: block;
+    }
+  }
+  
+  .nav-list {
+    display: flex;
+    gap: var(--space-lg);
+  }
+  
+  .nav-list a {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+  
+  .nav-list a:hover {
+    color: var(--color-text);
+  }
+  
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: 1px solid var(--color-border-strong);
+    background-color: var(--color-bg-input);
+    color: var(--color-text);
+    transition: all var(--transition-fast);
+  }
+  
+  .button.primary {
+    background-color: var(--color-accent-muted);
+    border-color: var(--color-border-accent);
+    color: var(--color-accent);
+  }
+  
+  .button.primary:hover {
+    background-color: rgba(85, 249, 145, 0.2);
+    border-color: var(--color-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 0 12px var(--color-accent-glow);
+  }
+  
+  .os {
+    font-size: 0.8em;
+    opacity: 0.8;
+  }
+</style>

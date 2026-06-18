@@ -1,0 +1,146 @@
+---
+const steps = [
+  {
+    id: "01",
+    title: "Copy anything",
+    description: "TanoDev Clip listens for copied text and stores it locally. No configuration required."
+  },
+  {
+    id: "02",
+    title: "Open instantly",
+    description: "Press <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Space</kbd> to open your clipboard history from anywhere."
+  },
+  {
+    id: "03",
+    title: "Find the clip",
+    description: "Search instantly by content, title, detected type, source application, or window title."
+  },
+  {
+    id: "04",
+    title: "Paste back",
+    description: "Double-click any clip to close TanoDev Clip and paste directly into your previously active application."
+  }
+];
+---
+
+<section class="workflow">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="title">The Workflow</h2>
+      <div class="line"></div>
+    </div>
+    
+    <div class="steps">
+      {steps.map(step => (
+        <div class="step">
+          <div class="step-header">
+            <span class="step-id mono">{step.id}</span>
+            <h3 class="step-title">{step.title}</h3>
+          </div>
+          <p class="step-desc" set:html={step.description}></p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .workflow {
+    padding: var(--space-3xl) 0;
+  }
+  
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-2xl);
+  }
+  
+  .title {
+    font-size: 1.5rem;
+    color: var(--color-text);
+  }
+  
+  .line {
+    flex-grow: 1;
+    height: 1px;
+    background-color: var(--color-border-subtle);
+  }
+  
+  .steps {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+  
+  @media (min-width: 640px) {
+    .steps {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .steps {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  .step {
+    background-color: var(--color-bg-panel);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .step:hover {
+    border-color: var(--color-border-strong);
+    background-color: var(--color-bg-panel-secondary);
+    transform: translateY(-2px);
+  }
+  
+  /* Top accent line */
+  .step::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--color-action);
+    opacity: 0.5;
+    transition: opacity var(--transition-fast);
+  }
+  
+  .step:hover::before {
+    opacity: 1;
+    box-shadow: 0 0 8px var(--color-action-muted);
+  }
+  
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+  
+  .step-id {
+    font-size: 0.85rem;
+    color: var(--color-action);
+    background: var(--color-action-muted);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+  }
+  
+  .step-title {
+    font-size: 1.1rem;
+  }
+  
+  .step-desc {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+</style>

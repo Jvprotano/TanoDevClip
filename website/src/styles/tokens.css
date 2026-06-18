@@ -1,0 +1,61 @@
+:root {
+  /* Colors - Base Backgrounds */
+  --color-bg-root: #070b0d;
+  --color-bg-panel: #0b1114;
+  --color-bg-panel-secondary: #0e171b;
+  --color-bg-input: #05090b;
+  --color-bg-card-hover: rgba(5, 9, 11, 0.9);
+
+  /* Colors - Accents */
+  --color-accent: #55f991; /* Brand green */
+  --color-accent-hover: #26ff8e;
+  --color-accent-muted: rgba(85, 249, 145, 0.12);
+  --color-accent-glow: rgba(38, 255, 142, 0.16);
+  
+  --color-action: #45d9ff; /* Cyan */
+  --color-action-muted: rgba(69, 217, 255, 0.08);
+
+  --color-warning: #ffd166; /* Amber */
+  --color-warning-muted: rgba(255, 209, 102, 0.1);
+
+  --color-danger: #ff5f72; /* Red */
+  --color-danger-muted: rgba(255, 95, 114, 0.11);
+
+  /* Colors - Text */
+  --color-text: #d7f9e7; /* Light mint */
+  --color-text-muted: #6e8e87; /* Muted teal */
+  --color-text-inverse: #070b0d;
+
+  /* Colors - Borders */
+  --color-border-subtle: #1c3336;
+  --color-border-strong: #2e5d62;
+  --color-border-accent: rgba(85, 249, 145, 0.45);
+
+  /* Fonts */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  --space-4xl: 96px;
+
+  /* Layout */
+  --content-width: 1024px;
+  --header-height: 64px;
+
+  /* Radius & Shadows */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --shadow-glow: 0 0 16px var(--color-accent-glow);
+  --shadow-panel: 0 18px 48px rgba(0,0,0,0.45), 0 0 28px rgba(69,217,255,0.08);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+}

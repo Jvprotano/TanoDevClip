@@ -1,110 +1,204 @@
-# TanoDevClip.UI
+# TanoDev Clip
 
-React + Vite + TypeScript UI for TanoDev Clip.
+<div align="center">
 
-This project is the WebView2 front-end. It should stay focused on presentation, local UI state, keyboard handling and bridge messages to the native host.
+**A fast, local-first clipboard manager for Windows, built for developers.**
 
-## Responsibilities
+[Download for Windows](https://github.com/Jvprotano/TanoDevClip/releases/latest/download/ProtanoSoftware.TanoDevClip-Setup.exe)
+·
+[Releases](https://github.com/Jvprotano/TanoDevClip/releases)
+·
+[Report an issue](https://github.com/Jvprotano/TanoDevClip/issues)
 
-- Render clipboard history, search, filters and clip details.
-- Render the DevTools panel and collect user input.
-- Render the settings modal and collect enabled-tool/hotkey preferences.
-- Send bridge messages through `window.chrome.webview.postMessage`.
-- Receive host messages and update UI state.
-- Provide a preview mode when the WebView bridge is unavailable.
+<br />
 
-## Non-Responsibilities
+![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows)
+![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-- Do not implement clipboard capture, paste behavior or Win32 focus logic here.
-- Do not duplicate DevTools business rules here. Generators, validators and text transforms belong in `src/TanoDevClip.DevTools`.
-- Do not persist clipboard data directly from the UI.
+</div>
 
-## Bridge
+<!-- Add a real product screenshot at docs/assets/app-preview.png before the public launch. -->
 
-The bridge wrapper is:
+<p align="center">
+  <img
+    src="docs/assets/app-preview.png"
+    alt="TanoDev Clip showing clipboard history and developer tools"
+    width="900"
+  />
+</p>
+
+## What is TanoDev Clip?
+
+TanoDev Clip keeps a searchable history of the text you copy and lets you quickly paste it back into your previous application.
+
+Press `Ctrl + Alt + Space`, find the content you need, and double-click it to paste.
+
+Everything is stored locally on your computer.
+
+## Features
+
+- Searchable clipboard history.
+- Configurable global hotkey.
+- Paste directly into the previously active application.
+- Pin frequently used clips.
+- Search by content, title, type, source application, and window title.
+- Automatic classification of JSON, SQL, URLs, JWTs, GUIDs, emails, and text.
+- Windows tray integration.
+- Local SQLite storage.
+- No account or backend service required.
+
+### Built-in DevTools
+
+TanoDev Clip also includes small utilities for common development tasks:
+
+- GUID generation.
+- CPF and CNPJ generation and validation.
+- Lorem Ipsum and random string generation.
+- JSON formatting, minification, and validation.
+- JWT decoding.
+- Base64 encoding and decoding.
+- URL encoding and decoding.
+- .NET regular expression helpers.
+
+Generated results can be copied directly and are added to clipboard history.
+
+## Download
+
+Download the latest installer:
+
+**[Download TanoDev Clip for Windows](https://github.com/Jvprotano/TanoDevClip/releases/latest/download/ProtanoSoftware.TanoDevClip-Setup.exe)**
+
+### Requirements
+
+- Windows 10 or Windows 11.
+- 64-bit system.
+- No separate .NET installation required.
+- WebView2 is installed by the installer when necessary.
+
+> [!NOTE]
+> Early releases may trigger a Microsoft Defender SmartScreen warning because the installer is not yet code-signed. Download builds only from this repository's official Releases page.
+
+## Basic usage
+
+1. Copy text normally from any application.
+2. Press `Ctrl + Alt + Space`.
+3. Search or select a previous clip.
+4. Double-click it to paste into the application you were using.
+
+Additional shortcuts:
+
+- `Ctrl + Alt + Space` — show or hide TanoDev Clip.
+- `Ctrl + D` — open or close the DevTools panel.
+
+The global shortcut can be changed in the application settings.
+
+## Privacy
+
+Clipboard history and settings are stored locally:
 
 ```text
-src/bridge/tanoDevBridge.ts
+%LocalAppData%/TanoDevClip/tanodevclip.db
+%LocalAppData%/TanoDevClip/settings.json
 ```
 
-Important outbound messages:
+TanoDev Clip does not require an account, cloud synchronization, or a remote clipboard database.
 
-- `app:get-info`
-- `app:hide`
-- `app:drag-window`
-- `clips:list`
-- `clips:copy`
-- `clips:paste`
-- `clips:toggle-pin`
-- `devtools:run`
-- `devtools:copy-generated`
-- `settings:save`
-- `settings:reset`
+## Development
 
-Important inbound messages:
+### Requirements
 
-- `app:info`
-- `app:focus-search`
-- `app:error`
-- `clips:list-result`
-- `clips:updated`
-- `devtools:run-result`
-- `settings:updated`
+- Windows.
+- .NET 10 SDK.
+- Node.js and npm.
 
-See the host implementation in `src/TanoDevClip.App/MainWindow.xaml.cs`.
-
-## DevTools UI
-
-`src/components/DevToolsView.tsx` owns the UI state for tool inputs and sends `devtools:run` payloads to the host. It intentionally does not compute CPF, CNPJ, JSON, JWT, Base64, URL or regex results itself.
-
-Tools that generate output without required input should auto-run when opened or when their generation options change:
-
-- GUID
-- CPF
-- CNPJ
-- Lorem Ipsum
-- Random string
-
-Tools that require user input should run only when the user clicks the relevant action:
-
-- JWT decode
-- JSON format/minify
-- Base64 encode/decode
-- URL encode/decode
-- Regex helper
-
-The DevTools panel must filter tabs using `settings.enabledTools`. Disabled tools should not be visible in the drawer.
-
-## Settings UI
-
-`src/components/SettingsModal.tsx` owns temporary settings form state. Saving sends `settings:save`; reset sends `settings:reset`.
-
-The modal controls:
-
-- enabled DevTools
-- global app hotkey
-- reset to default
-
-The actual hotkey registration happens in the WPF host, not in React.
-
-## Run
+Clone the repository:
 
 ```powershell
-npm install
-npm run dev
+git clone https://github.com/Jvprotano/TanoDevClip.git
+cd TanoDevClip
 ```
 
-The WPF app expects Vite at:
-
-```text
-http://localhost:5173
-```
-
-## Validate
+Install the UI dependencies:
 
 ```powershell
-npm run build
+cd src/TanoDevClip.UI
+npm ci
+cd ../..
+```
+
+Start the React UI and WPF application together:
+
+```powershell
+.\scripts\dev-start.ps1
+```
+
+The script starts:
+
+- Vite with Hot Module Replacement for the React UI.
+- `dotnet watch` for the WPF application.
+
+Press `Ctrl+C` to stop both processes.
+
+### Validation
+
+Run the automated tests:
+
+```powershell
+dotnet test TanoDevClip.sln
+```
+
+Validate the UI:
+
+```powershell
+cd src/TanoDevClip.UI
 npm run lint
+npm run build
 ```
 
-For visual or interaction changes, run the desktop app as well. The browser preview is useful for layout, but it does not exercise WebView2, clipboard capture or native paste behavior.
+Clipboard, hotkey, tray, WebView2, and paste behavior should also be tested manually on Windows.
+
+## Architecture
+
+TanoDev Clip combines a native Windows host with a web-based interface:
+
+```text
+WPF host
+├── WebView2
+│   └── React + Vite + TypeScript UI
+├── Win32 clipboard and hotkey integration
+├── SQLite persistence
+└── C# DevTools
+```
+
+The main projects are:
+
+- `TanoDevClip.App` — WPF shell, WebView2, tray, hotkeys, and native clipboard behavior.
+- `TanoDevClip.Core` — clipboard models, interfaces, and classification.
+- `TanoDevClip.Infrastructure` — SQLite, repositories, settings, and local paths.
+- `TanoDevClip.DevTools` — generators, validators, and transformations.
+- `TanoDevClip.UI` — React user interface.
+- `TanoDevClip.Tests` — automated tests.
+
+More information:
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [DevTools](docs/DEVTOOLS.md)
+- [Agent guide](AGENTS.md)
+
+## Contributing
+
+Bug reports, feature suggestions, and pull requests are welcome.
+
+Before changing the native host, WebView2 bridge, or DevTools behavior, read the relevant documentation under [`docs/`](docs/).
+
+Please keep new functionality:
+
+- Local-first.
+- Testable.
+- Consistent with the existing native/UI boundary.
+- Focused on developer workflows.
+
+## License
+
+TanoDev Clip is available under the [MIT License](LICENSE).

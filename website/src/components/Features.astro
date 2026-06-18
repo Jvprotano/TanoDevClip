@@ -1,0 +1,173 @@
+---
+const categories = [
+  {
+    name: "Workflow",
+    features: [
+      {
+        title: "Global Hotkey",
+        description: "Configurable system-wide shortcut to summon your clipboard instantly."
+      },
+      {
+        title: "Clipboard History",
+        description: "Stores previous clips with content, title, source application, and timestamp."
+      },
+      {
+        title: "Pin Favorites",
+        description: "Pin frequently used clips so they always appear at the top of your list."
+      },
+      {
+        title: "Fast Search",
+        description: "Filter instantly by content, type, or origin window."
+      }
+    ]
+  },
+  {
+    name: "Smart Content",
+    features: [
+      {
+        title: "Automatic Classification",
+        description: "Detects developer content like JSON, SQL, URLs, JWTs, GUIDs, and Emails."
+      },
+      {
+        title: "Search by Type",
+        description: "Filter your history to only show specific data types, like SQL queries."
+      },
+      {
+        title: "Deduplication",
+        description: "Hashes content to prevent duplicate entries while updating last-used timestamps."
+      }
+    ]
+  },
+  {
+    name: "Windows Integration",
+    features: [
+      {
+        title: "Seamless Paste",
+        description: "Double-click a clip to close the app and paste directly into your active window."
+      },
+      {
+        title: "System Tray",
+        description: "Runs quietly in the background from your Windows system tray."
+      },
+      {
+        title: "Local SQLite",
+        description: "All history is persisted to a local SQLite database that survives restarts."
+      }
+    ]
+  }
+];
+---
+
+<section id="features" class="features-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="title">Everything you need</h2>
+      <div class="line"></div>
+    </div>
+    
+    <div class="categories">
+      {categories.map(category => (
+        <div class="category">
+          <h3 class="category-name mono">
+            <span class="prompt">&gt;</span> {category.name}
+          </h3>
+          <div class="grid">
+            {category.features.map(feature => (
+              <div class="feature-card">
+                <h4 class="feature-title">{feature.title}</h4>
+                <p class="feature-desc">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .features-section {
+    padding: var(--space-4xl) 0;
+    background-color: var(--color-bg-panel);
+    border-top: 1px solid var(--color-border-subtle);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-3xl);
+  }
+  
+  .title {
+    font-size: 1.5rem;
+    color: var(--color-text);
+  }
+  
+  .line {
+    flex-grow: 1;
+    height: 1px;
+    background-color: var(--color-border-subtle);
+  }
+  
+  .categories {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xl);
+  }
+  
+  .category-name {
+    font-size: 1.1rem;
+    color: var(--color-accent);
+    margin-bottom: var(--space-xl);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+  
+  @media (min-width: 640px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr); /* 3 for Windows integration, etc */
+    }
+    
+    /* Make workflow group (4 items) fill correctly */
+    .category:nth-child(1) .grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  .feature-card {
+    background: var(--color-bg-root);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+  }
+  
+  .feature-card:hover {
+    border-color: var(--color-border-strong);
+  }
+  
+  .feature-title {
+    font-size: 1.05rem;
+    margin-bottom: var(--space-sm);
+    color: var(--color-text);
+  }
+  
+  .feature-desc {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+  }
+</style>

@@ -1,0 +1,94 @@
+---
+const downloadUrl = "https://github.com/Jvprotano/TanoDevClip/releases/latest/download/ProtanoSoftware.TanoDevClip-Setup.exe";
+---
+
+<section class="cta-section">
+  <div class="container cta-inner">
+    <h2 class="title mono"><span class="prompt">&gt;</span> Ready to run?</h2>
+    
+    <div class="actions">
+      <a href={downloadUrl} class="button primary large">
+        Download for Windows
+      </a>
+    </div>
+    
+    <div class="secondary-links mono">
+      <a href="https://github.com/Jvprotano/TanoDevClip/releases/latest">View latest release</a>
+      <span class="separator">/</span>
+      <a href="https://github.com/Jvprotano/TanoDevClip">View source</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta-section {
+    padding: var(--space-4xl) 0;
+    text-align: center;
+  }
+  
+  .cta-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .title {
+    font-size: 2rem;
+    color: var(--color-text);
+    margin-bottom: var(--space-xl);
+  }
+  
+  .prompt {
+    color: var(--color-accent);
+  }
+  
+  .actions {
+    margin-bottom: var(--space-lg);
+  }
+  
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 32px;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    border: 1px solid var(--color-border-strong);
+  }
+  
+  .button.large {
+    font-size: 1.1rem;
+  }
+  
+  .button.primary {
+    background-color: var(--color-accent-muted);
+    border-color: var(--color-border-accent);
+    color: var(--color-accent);
+  }
+  
+  .button.primary:hover {
+    background-color: rgba(85, 249, 145, 0.2);
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+  }
+  
+  .secondary-links {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.9rem;
+  }
+  
+  .secondary-links a {
+    color: var(--color-text-muted);
+  }
+  
+  .secondary-links a:hover {
+    color: var(--color-action);
+  }
+  
+  .separator {
+    color: var(--color-border-subtle);
+  }
+</style>

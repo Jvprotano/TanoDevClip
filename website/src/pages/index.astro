@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import ProductPreview from '../components/ProductPreview.astro';
+import Workflow from '../components/Workflow.astro';
+import Features from '../components/Features.astro';
+import DevTools from '../components/DevTools.astro';
+import Privacy from '../components/Privacy.astro';
+import SystemRequirements from '../components/SystemRequirements.astro';
+import OpenSource from '../components/OpenSource.astro';
+import DownloadCta from '../components/DownloadCta.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout>
+  <Header />
+  
+  <main>
+    <Hero />
+    <ProductPreview />
+    <Workflow />
+    <Features />
+    <DevTools />
+    <Privacy />
+    <SystemRequirements />
+    <OpenSource />
+    <DownloadCta />
+  </main>
+  
+  <Footer />
+</BaseLayout>

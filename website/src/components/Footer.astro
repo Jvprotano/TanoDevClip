@@ -1,0 +1,119 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="prompt mono">&gt;</span>
+      <span class="name">TanoDev Clip</span>
+      <p class="tagline">Clipboard manager for developers.</p>
+    </div>
+    
+    <div class="footer-links">
+      <div class="link-group">
+        <h3 class="mono">Project</h3>
+        <ul>
+          <li><a href="https://github.com/Jvprotano/TanoDevClip">GitHub Repository</a></li>
+          <li><a href="https://github.com/Jvprotano/TanoDevClip/releases">Releases</a></li>
+          <li><a href="https://github.com/Jvprotano/TanoDevClip/issues/new">Report an Issue</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container footer-bottom">
+    <div class="copyright">
+      &copy; {year} TanoDev Clip contributors. MIT License.
+    </div>
+    <div class="attribution">
+      Local-first &bull; Open Source
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--color-border-subtle);
+    padding: var(--space-3xl) 0 var(--space-xl);
+    margin-top: auto;
+    background-color: var(--color-bg-panel);
+  }
+  
+  .footer-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+    margin-bottom: var(--space-2xl);
+  }
+  
+  @media (min-width: 768px) {
+    .footer-inner {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+  }
+  
+  .footer-brand .prompt {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+  
+  .footer-brand .name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.01em;
+  }
+  
+  .tagline {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-top: var(--space-xs);
+  }
+  
+  .footer-links {
+    display: flex;
+    gap: var(--space-3xl);
+  }
+  
+  .link-group h3 {
+    font-size: 0.85rem;
+    color: var(--color-text);
+    margin-bottom: var(--space-md);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .link-group ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  
+  .link-group a {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+  
+  .link-group a:hover {
+    color: var(--color-action);
+  }
+  
+  .footer-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    border-top: 1px solid var(--color-border-subtle);
+    padding-top: var(--space-xl);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+  
+  @media (min-width: 768px) {
+    .footer-bottom {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+</style>

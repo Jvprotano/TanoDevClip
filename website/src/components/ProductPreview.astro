@@ -1,0 +1,125 @@
+---
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<section class="preview">
+  <div class="container">
+    <div class="window-frame">
+      <div class="titlebar">
+        <div class="titlebar-title mono">
+          <span class="prompt">&gt;</span> TanoDev Clip
+        </div>
+        <div class="titlebar-controls">
+          <div class="control minimize"></div>
+          <div class="control maximize"></div>
+          <div class="control close"></div>
+        </div>
+      </div>
+      <div class="window-content">
+        <!-- Using a placeholder pattern that feels technical -->
+        <div class="placeholder">
+          <img 
+            src={`${baseUrl}/assets/app-preview.png`} 
+            alt="TanoDev Clip application interface showing clipboard history and developer tools"
+            class="screenshot"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="fallback-placeholder">
+            <div class="mono">
+              <span class="prompt">&gt;</span> awaiting visual asset...<br/>
+              <span class="muted">// Place 'app-preview.png' in src/assets/</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .preview {
+    margin-bottom: var(--space-4xl);
+  }
+  
+  .window-frame {
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: var(--color-bg-root);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-panel);
+    overflow: hidden;
+  }
+  
+  .titlebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 32px;
+    background-color: rgba(14, 23, 27, 0.96);
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding: 0 var(--space-md);
+  }
+  
+  .titlebar-title {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
+  }
+  
+  .titlebar-title .prompt {
+    color: var(--color-accent);
+  }
+  
+  .titlebar-controls {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .control {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border-strong);
+  }
+  
+  .close { border-color: var(--color-danger); }
+  .minimize { border-color: var(--color-warning); }
+  .maximize { border-color: var(--color-action); }
+  
+  .window-content {
+    background-color: var(--color-bg-root);
+    min-height: 400px;
+    position: relative;
+    display: flex;
+  }
+  
+  .placeholder {
+    width: 100%;
+    display: flex;
+  }
+  
+  .screenshot {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  .fallback-placeholder {
+    display: none; /* Shown via JS onerror if image missing */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: var(--space-3xl);
+    text-align: center;
+    font-size: 0.9rem;
+    background-image: linear-gradient(45deg, var(--color-bg-panel) 25%, transparent 25%, transparent 75%, var(--color-bg-panel) 75%, var(--color-bg-panel)), linear-gradient(45deg, var(--color-bg-panel) 25%, transparent 25%, transparent 75%, var(--color-bg-panel) 75%, var(--color-bg-panel));
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+  }
+  
+  .muted {
+    color: var(--color-text-muted);
+  }
+</style>

@@ -1,0 +1,62 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { 
+  title = "TanoDev Clip — Clipboard manager for developers", 
+  description = "A fast, local-first clipboard manager for Windows, built for developers." 
+} = Astro.props;
+
+// Determine base URL for correct asset paths under GitHub Pages
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#070b0d" />
+    
+    <title>{title}</title>
+    
+    <link rel="icon" type="image/svg+xml" href={`${baseUrl}/favicon.svg`} />
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={`${baseUrl}/social-preview.png`} />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={Astro.url} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={`${baseUrl}/social-preview.png`} />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="app-layout">
+      <slot />
+    </div>
+  </body>
+</html>
+
+<style>
+  .app-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+</style>

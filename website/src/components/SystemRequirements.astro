@@ -1,0 +1,67 @@
+---
+---
+
+<section class="requirements-section">
+  <div class="container">
+    <div class="terminal-card">
+      <div class="titlebar">
+        <div class="titlebar-title mono">system_reqs.json</div>
+      </div>
+      <div class="card-body mono">
+        <div class="line">
+          <span class="key">"os"</span>: <span class="string">"Windows 10 / Windows 11"</span>,
+        </div>
+        <div class="line">
+          <span class="key">"architecture"</span>: <span class="string">"x64 (64-bit)"</span>,
+        </div>
+        <div class="line">
+          <span class="key">"runtime"</span>: <span class="string">"Self-contained (.NET 10 included)"</span>,
+        </div>
+        <div class="line">
+          <span class="key">"dependency"</span>: <span class="string">"Microsoft Edge WebView2"</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .requirements-section {
+    padding: var(--space-2xl) 0;
+  }
+  
+  .terminal-card {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: var(--color-bg-root);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  
+  .titlebar {
+    background-color: rgba(14, 23, 27, 0.96);
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding: 6px var(--space-md);
+    text-align: center;
+  }
+  
+  .titlebar-title {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+  
+  .card-body {
+    padding: var(--space-lg);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+  
+  .key {
+    color: var(--color-action);
+  }
+  
+  .string {
+    color: var(--color-accent);
+  }
+</style>
