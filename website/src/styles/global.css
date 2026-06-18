@@ -1,6 +1,5 @@
 @import './tokens.css';
 
-/* CSS Reset & Base */
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -10,16 +9,20 @@
   padding: 0;
 }
 
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
 body {
+  min-width: 320px;
   font-family: var(--font-sans);
   background-color: var(--color-bg-root);
   color: var(--color-text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
-  /* App-like scanline effect */
-  background-image: 
+  background-image:
     linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
     radial-gradient(circle at 20% 0%, rgba(69, 217, 255, 0.05), transparent 40%);
   background-size: 100% 3px, 100% 100%;
@@ -36,11 +39,25 @@ h1, h2, h3, h4, h5, h6 {
 a {
   color: var(--color-action);
   text-decoration: none;
-  transition: color var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 a:hover {
-  color: var(--color-action-muted);
+  color: var(--color-action-hover);
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: 3px;
+  box-shadow: var(--focus-ring);
 }
 
 img, picture, video, canvas, svg {
@@ -56,8 +73,17 @@ ul, ol {
   list-style: none;
 }
 
-/* Utilities */
+section[id], main[id] {
+  scroll-margin-top: calc(var(--header-height) + var(--space-md));
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
 .container {
+  width: 100%;
   max-width: var(--content-width);
   margin: 0 auto;
   padding: 0 var(--space-lg);
@@ -77,6 +103,78 @@ kbd {
   color: var(--color-warning);
 }
 
+.button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 9px 20px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  transition:
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.button:hover {
+  color: var(--color-text);
+  background-color: var(--color-bg-panel-secondary);
+  border-color: var(--color-text-muted);
+  transform: translateY(-1px);
+}
+
+.button-primary {
+  background-color: var(--color-accent-muted);
+  border-color: var(--color-border-accent);
+  color: var(--color-accent);
+}
+
+.button-primary:hover {
+  background-color: rgba(85, 249, 145, 0.2);
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+  box-shadow: var(--shadow-glow);
+}
+
+.button-support {
+  background-color: var(--color-support-muted);
+  border-color: rgba(255, 221, 122, 0.42);
+  color: var(--color-support);
+}
+
+.button-support:hover {
+  border-color: var(--color-support);
+  color: var(--color-support);
+}
+
+.button-large {
+  min-height: 48px;
+  padding: 12px 26px;
+  font-size: 1.05rem;
+}
+
+.button-disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.button-disabled:hover {
+  background-color: var(--color-support-muted);
+  border-color: rgba(255, 221, 122, 0.42);
+  color: var(--color-support);
+  transform: none;
+  box-shadow: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -89,8 +187,38 @@ kbd {
   border-width: 0;
 }
 
-/* Animation preferences */
+.skip-link {
+  position: fixed;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  z-index: 1000;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-sm);
+  transform: translateY(-150%);
+}
+
+.skip-link:focus {
+  color: var(--color-text-inverse);
+  transform: translateY(0);
+}
+
+@media (max-width: 767px) {
+  body {
+    background-attachment: scroll;
+  }
+
+  .container {
+    padding-inline: var(--space-md);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
