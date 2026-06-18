@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3967.48" />
+    <PackageReference Include="Velopack" Version="1.2.0" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -18,10 +19,13 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets/AppIcon.ico</ApplicationIcon>
+    <StartupObject>TanoDevClip.App.App</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
   <Resource Include="Assets\AppIcon.ico" />
+  <ApplicationDefinition Remove="App.xaml" />
+  <Page Include="App.xaml" />
 </ItemGroup>
 
 </Project>

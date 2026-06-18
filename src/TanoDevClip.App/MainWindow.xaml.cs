@@ -23,6 +23,7 @@ namespace TanoDevClip.App
     public partial class MainWindow : Window
     {
         private const string DevServerUrl = "http://localhost:5173";
+        private const string UiVirtualHost = "app.tanodevclip.local";
         private const int HotKeyId = 0x5443;
         private const int WmClipboardUpdate = 0x031D;
         private const int WmHotKey = 0x0312;
@@ -106,8 +107,14 @@ namespace TanoDevClip.App
             await AppWebView.EnsureCoreWebView2Async();
             AppWebView.DefaultBackgroundColor = Drawing.Color.FromArgb(0x07, 0x0B, 0x0D);
 
+#if DEBUG
             AppWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
             AppWebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
+
+#else
+            AppWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+            AppWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
+#endif
             AppWebView.CoreWebView2.Settings.IsWebMessageEnabled = true;
 
             AppWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
@@ -125,18 +132,43 @@ namespace TanoDevClip.App
             AppWebView.Source = await ResolveUiEntryPointAsync();
         }
 
-        private async Task<Uri> ResolveUiEntryPointAsync()
+        private Task<Uri> ResolveUiEntryPointAsync()
+        {
+#if DEBUG
+            return ResolveDevelopmentUiEntryPointAsync();
+#else
+    var packagedUiDirectory = Path.Combine(
+        AppContext.BaseDirectory,
+        "ui");
+
+    return Task.FromResult(
+        MapUiDirectory(packagedUiDirectory));
+#endif
+        }
+
+#if DEBUG
+        private async Task<Uri> ResolveDevelopmentUiEntryPointAsync()
         {
             if (await IsDevServerAvailableAsync())
             {
                 return new Uri(DevServerUrl);
             }
 
-            var distIndex = FindUiDistIndex();
-            return distIndex is not null
-                ? new Uri(distIndex)
-                : new Uri(DevServerUrl);
+            var developmentUiDirectory =
+                FindDevelopmentUiDistDirectory();
+
+            if (developmentUiDirectory is not null)
+            {
+                return MapUiDirectory(developmentUiDirectory);
+            }
+
+            var packagedUiDirectory = Path.Combine(
+                AppContext.BaseDirectory,
+                "ui");
+
+            return MapUiDirectory(packagedUiDirectory);
         }
+#endif
 
         private static async Task<bool> IsDevServerAvailableAsync()
         {
@@ -153,9 +185,11 @@ namespace TanoDevClip.App
             }
         }
 
-        private static string? FindUiDistIndex()
+#if DEBUG
+        private static string? FindDevelopmentUiDistDirectory()
         {
-            var directory = new DirectoryInfo(AppContext.BaseDirectory);
+            var directory = new DirectoryInfo(
+                AppContext.BaseDirectory);
 
             while (directory is not null)
             {
@@ -163,10 +197,13 @@ namespace TanoDevClip.App
                     directory.FullName,
                     "src",
                     "TanoDevClip.UI",
-                    "dist",
+                    "dist");
+
+                var indexPath = Path.Combine(
+                    candidate,
                     "index.html");
 
-                if (File.Exists(candidate))
+                if (File.Exists(indexPath))
                 {
                     return candidate;
                 }
@@ -175,6 +212,31 @@ namespace TanoDevClip.App
             }
 
             return null;
+        }
+#endif
+
+        private Uri MapUiDirectory(string uiDirectory)
+        {
+            var indexPath = Path.Combine(
+                uiDirectory,
+                "index.html");
+
+            if (!File.Exists(indexPath))
+            {
+                throw new FileNotFoundException(
+                    $"TanoDev Clip UI was not found at '{indexPath}'. " +
+                    "Build the React UI and include it in the application publish directory.",
+                    indexPath);
+            }
+
+            AppWebView.CoreWebView2
+                .SetVirtualHostNameToFolderMapping(
+                    UiVirtualHost,
+                    uiDirectory,
+                    CoreWebView2HostResourceAccessKind.DenyCors);
+
+            return new Uri(
+                $"https://{UiVirtualHost}/index.html");
         }
 
         private async void CoreWebView2_WebMessageReceived(

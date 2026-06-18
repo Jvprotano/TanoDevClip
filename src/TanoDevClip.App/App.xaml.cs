@@ -1,15 +1,24 @@
 using System.IO;
-using System.Windows;
 using TanoDevClip.Core.Classification;
-using TanoDevClip.Core.Settings;
 using TanoDevClip.DevTools;
 using TanoDevClip.Infrastructure.Database;
 using TanoDevClip.Infrastructure.Local;
+using Velopack;
 
 namespace TanoDevClip.App
 {
     public partial class App : System.Windows.Application
     {
+        [STAThread]
+        private static void Main(string[] args)
+        {
+            VelopackApp.Build().Run();
+
+            var app = new App();
+            app.InitializeComponent();
+            app.Run();
+        }
+
         protected override void OnExit(System.Windows.ExitEventArgs e)
         {
             if (MainWindow is MainWindow mainWindow)

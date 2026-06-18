@@ -1,5 +1,3 @@
-using Microsoft.Data.Sqlite;
-
 namespace TanoDevClip.Infrastructure.Database
 {
     public sealed class DatabaseBootstrapper
