@@ -7,23 +7,27 @@
   --color-bg-card-hover: rgba(5, 9, 11, 0.9);
 
   /* Colors - Accents */
-  --color-accent: #55f991; /* Brand green */
-  --color-accent-hover: #26ff8e;
+  --color-accent: #55f991;
+  --color-accent-hover: #7dffad;
   --color-accent-muted: rgba(85, 249, 145, 0.12);
   --color-accent-glow: rgba(38, 255, 142, 0.16);
-  
-  --color-action: #45d9ff; /* Cyan */
+
+  --color-action: #45d9ff;
+  --color-action-hover: #8ceaff;
   --color-action-muted: rgba(69, 217, 255, 0.08);
 
-  --color-warning: #ffd166; /* Amber */
+  --color-warning: #ffd166;
   --color-warning-muted: rgba(255, 209, 102, 0.1);
 
-  --color-danger: #ff5f72; /* Red */
+  --color-danger: #ff5f72;
   --color-danger-muted: rgba(255, 95, 114, 0.11);
 
+  --color-support: #ffdd7a;
+  --color-support-muted: rgba(255, 221, 122, 0.1);
+
   /* Colors - Text */
-  --color-text: #d7f9e7; /* Light mint */
-  --color-text-muted: #6e8e87; /* Muted teal */
+  --color-text: #d7f9e7;
+  --color-text-muted: #6e8e87;
   --color-text-inverse: #070b0d;
 
   /* Colors - Borders */
@@ -32,8 +36,8 @@
   --color-border-accent: rgba(85, 249, 145, 0.45);
 
   /* Fonts */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  --font-sans: "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "Cascadia Code", "Cascadia Mono", "JetBrains Mono", "Fira Code", Consolas, monospace;
 
   /* Spacing */
   --space-xs: 4px;
@@ -53,7 +57,8 @@
   --radius-sm: 2px;
   --radius-md: 4px;
   --shadow-glow: 0 0 16px var(--color-accent-glow);
-  --shadow-panel: 0 18px 48px rgba(0,0,0,0.45), 0 0 28px rgba(69,217,255,0.08);
+  --shadow-panel: 0 18px 48px rgba(0, 0, 0, 0.45), 0 0 28px rgba(69, 217, 255, 0.08);
+  --focus-ring: 0 0 0 3px rgba(69, 217, 255, 0.28);
 
   /* Transitions */
   --transition-fast: 150ms ease;

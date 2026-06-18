@@ -2,13 +2,15 @@
   "name": "tanodevclip-website",
   "type": "module",
   "version": "0.0.1",
+  "private": true,
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build",
+    "check": "astro check",
+    "build": "npm run check && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "lint": "echo 'No linting configured'"
+    "lint": "npm run check"
   },
   "dependencies": {
     "astro": "^6.4.8"

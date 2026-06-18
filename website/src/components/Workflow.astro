@@ -1,46 +1,57 @@
 ---
 const steps = [
   {
-    id: "01",
-    title: "Copy anything",
-    description: "TanoDev Clip listens for copied text and stores it locally. No configuration required."
+    id: '01',
+    title: 'Copy anything',
+    description: 'TanoDev Clip listens for copied text and stores it locally. No configuration is required to begin capturing text.',
   },
   {
-    id: "02",
-    title: "Open instantly",
-    description: "Press <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Space</kbd> to open your clipboard history from anywhere."
+    id: '02',
+    title: 'Open instantly',
+    description: 'Use the default global shortcut to open your clipboard history from anywhere.',
+    shortcut: ['Ctrl', 'Alt', 'Space'],
   },
   {
-    id: "03",
-    title: "Find the clip",
-    description: "Search instantly by content, title, detected type, source application, or window title."
+    id: '03',
+    title: 'Find the clip',
+    description: 'Search by content, title, detected type, source application, or source window.',
   },
   {
-    id: "04",
-    title: "Paste back",
-    description: "Double-click any clip to close TanoDev Clip and paste directly into your previously active application."
-  }
+    id: '04',
+    title: 'Paste back',
+    description: 'Double-click a clip to close TanoDev Clip, restore the previous application, and paste the selected content.',
+  },
 ];
 ---
 
-<section class="workflow">
+<section id="workflow" class="workflow" aria-labelledby="workflow-title">
   <div class="container">
     <div class="section-header">
-      <h2 class="title">The Workflow</h2>
-      <div class="line"></div>
+      <h2 id="workflow-title" class="title">The workflow</h2>
+      <div class="line" aria-hidden="true"></div>
     </div>
-    
-    <div class="steps">
+
+    <ol class="steps">
       {steps.map(step => (
-        <div class="step">
+        <li class="step">
           <div class="step-header">
-            <span class="step-id mono">{step.id}</span>
+            <span class="step-id mono" aria-hidden="true">{step.id}</span>
             <h3 class="step-title">{step.title}</h3>
           </div>
-          <p class="step-desc" set:html={step.description}></p>
-        </div>
+          <p class="step-desc">{step.description}</p>
+          {step.shortcut && (
+            <div class="shortcut" aria-label="Control plus Alt plus Space">
+              {step.shortcut.map((key, index) => (
+                <span class="shortcut-part">
+                  <kbd>{key}</kbd>
+                  {index < step.shortcut.length - 1 && <span aria-hidden="true">+</span>}
+                </span>
+              ))}
+            </div>
+          )}
+        </li>
       ))}
-    </div>
+    </ol>
   </div>
 </section>
 
@@ -48,60 +59,50 @@ const steps = [
   .workflow {
     padding: var(--space-3xl) 0;
   }
-  
+
   .section-header {
     display: flex;
     align-items: center;
     gap: var(--space-md);
     margin-bottom: var(--space-2xl);
   }
-  
+
   .title {
     font-size: 1.5rem;
     color: var(--color-text);
   }
-  
+
   .line {
     flex-grow: 1;
     height: 1px;
     background-color: var(--color-border-subtle);
   }
-  
+
   .steps {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--space-xl);
   }
-  
-  @media (min-width: 640px) {
-    .steps {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .steps {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-  
+
   .step {
     background-color: var(--color-bg-panel);
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-md);
     padding: var(--space-lg);
-    transition: all var(--transition-base);
+    transition:
+      border-color var(--transition-base),
+      background-color var(--transition-base),
+      transform var(--transition-base);
     position: relative;
     overflow: hidden;
   }
-  
+
   .step:hover {
     border-color: var(--color-border-strong);
     background-color: var(--color-bg-panel-secondary);
     transform: translateY(-2px);
   }
-  
-  /* Top accent line */
+
   .step::before {
     content: '';
     position: absolute;
@@ -113,19 +114,19 @@ const steps = [
     opacity: 0.5;
     transition: opacity var(--transition-fast);
   }
-  
+
   .step:hover::before {
     opacity: 1;
     box-shadow: 0 0 8px var(--color-action-muted);
   }
-  
+
   .step-header {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
     margin-bottom: var(--space-sm);
   }
-  
+
   .step-id {
     font-size: 0.85rem;
     color: var(--color-action);
@@ -133,14 +134,39 @@ const steps = [
     padding: 2px 6px;
     border-radius: var(--radius-sm);
   }
-  
+
   .step-title {
     font-size: 1.1rem;
   }
-  
+
   .step-desc {
     color: var(--color-text-muted);
     font-size: 0.95rem;
     line-height: 1.5;
+  }
+
+  .shortcut,
+  .shortcut-part {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .shortcut {
+    margin-top: var(--space-md);
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  @media (min-width: 640px) {
+    .steps {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .steps {
+      grid-template-columns: repeat(4, 1fr);
+    }
   }
 </style>
