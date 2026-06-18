@@ -8,6 +8,7 @@ This project is the WebView2 front-end. It should stay focused on presentation, 
 
 - Render clipboard history, search, filters and clip details.
 - Render the DevTools panel and collect user input.
+- Render the settings modal and collect enabled-tool/hotkey preferences.
 - Send bridge messages through `window.chrome.webview.postMessage`.
 - Receive host messages and update UI state.
 - Provide a preview mode when the WebView bridge is unavailable.
@@ -37,6 +38,8 @@ Important outbound messages:
 - `clips:toggle-pin`
 - `devtools:run`
 - `devtools:copy-generated`
+- `settings:save`
+- `settings:reset`
 
 Important inbound messages:
 
@@ -46,6 +49,7 @@ Important inbound messages:
 - `clips:list-result`
 - `clips:updated`
 - `devtools:run-result`
+- `settings:updated`
 
 See the host implementation in `src/TanoDevClip.App/MainWindow.xaml.cs`.
 
@@ -68,6 +72,20 @@ Tools that require user input should run only when the user clicks the relevant 
 - Base64 encode/decode
 - URL encode/decode
 - Regex helper
+
+The DevTools panel must filter tabs using `settings.enabledTools`. Disabled tools should not be visible in the drawer.
+
+## Settings UI
+
+`src/components/SettingsModal.tsx` owns temporary settings form state. Saving sends `settings:save`; reset sends `settings:reset`.
+
+The modal controls:
+
+- enabled DevTools
+- global app hotkey
+- reset to default
+
+The actual hotkey registration happens in the WPF host, not in React.
 
 ## Run
 

@@ -3,6 +3,7 @@ export type AppInfo = {
   version: string;
   environment: string;
   hotkey: string;
+  settings?: AppSettings;
 };
 
 export type ClipItem = {
@@ -36,4 +37,18 @@ export type GuidFormat = "default" | "no-hyphens" | "uppercase";
 export type ToolResult = {
   status: "ok" | "error";
   value: string;
+};
+
+export type AppSettings = {
+  hotKey: string;
+  enabledTools: ToolKind[];
+  defaults: {
+    hotKey: string;
+    enabledTools: ToolKind[];
+  };
+};
+
+export type AppSettingsUpdate = {
+  hotKey: string;
+  enabledTools: ToolKind[];
 };

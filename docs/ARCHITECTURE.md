@@ -28,6 +28,7 @@ Owns the desktop runtime:
 - Clipboard listener.
 - Programmatic clipboard writes.
 - Return-window tracking and paste into the previously active app.
+- Settings bridge and hotkey re-registration.
 - Drag and resize handling for the borderless window.
 
 ### `TanoDevClip.UI`
@@ -38,6 +39,7 @@ Owns the interface:
 - Search and filters.
 - Clip detail controls.
 - DevTools panel controls.
+- Settings modal controls.
 - Keyboard shortcuts inside the app.
 - Bridge message send/receive.
 
@@ -75,6 +77,7 @@ Owns persistence and local paths:
 - SQLite connection factory.
 - Schema bootstrap.
 - Repository implementation.
+- JSON settings store.
 - Local app data paths.
 
 ## Message Bridge
@@ -94,6 +97,14 @@ AppWebView.CoreWebView2.PostWebMessageAsJson(json);
 ```
 
 Keep message payloads small, serializable and version-tolerant. Prefer adding optional fields over changing existing meanings.
+
+Settings messages:
+
+- `settings:save`: persist enabled tools and hotkey, then re-register the global hotkey.
+- `settings:reset`: restore default settings.
+- `settings:updated`: host response with the saved settings.
+
+`app:info` also includes the current settings payload so the UI can initialize the modal.
 
 ## Clipboard Flow
 
@@ -138,6 +149,21 @@ src/TanoDevClip.UI/dist/index.html
 ```
 
 Run `npm run build` before relying on the static fallback.
+
+## Settings Storage
+
+Clip history lives in SQLite. Application settings are separate JSON state:
+
+```text
+%LocalAppData%/TanoDevClip/settings.json
+```
+
+Settings include:
+
+- enabled DevTools
+- global hotkey
+
+The host validates and applies the hotkey before saving settings. If registration fails, it restores the previous hotkey.
 
 ## Validation Expectations
 

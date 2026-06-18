@@ -7,8 +7,8 @@ type ClipboardViewProps = {
   selectedClipId: string | null;
   isCollapsed: boolean;
   onSelectClip: (id: string) => void;
-  onCopyClip: (id: string) => void;
   onPasteClip: (id: string) => void;
+  onOpenSettings: () => void;
   onTogglePin: (id: string) => void;
   onCollapse: (isCollapsed: boolean) => void;
 };
@@ -19,8 +19,8 @@ export function ClipboardView({
   selectedClipId,
   isCollapsed,
   onSelectClip,
-  onCopyClip,
   onPasteClip,
+  onOpenSettings,
   onTogglePin,
   onCollapse,
 }: ClipboardViewProps) {
@@ -87,10 +87,12 @@ export function ClipboardView({
                   {selectedClip.isPinned ? "unpin" : "pin"}
                 </button>
                 <button
-                  className="primary-button"
-                  onClick={() => onCopyClip(selectedClip.id)}
+                  className="settings-gear-button"
+                  onClick={onOpenSettings}
+                  title="Settings"
+                  aria-label="Open settings"
                 >
-                  copy
+                  ⚙
                 </button>
               </div>
             </div>

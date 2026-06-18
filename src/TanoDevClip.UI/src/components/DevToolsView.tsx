@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import { devToolDefinitions } from "../constants";
 import type { GuidFormat, ToolKind, ToolResult } from "../types";
 
 type DevToolsViewProps = {
   activeTool: ToolKind;
+  enabledTools: ToolKind[];
   result: ToolResult;
   onToolChange: (tool: ToolKind) => void;
   onRun: (payload: DevToolPayload) => void;
@@ -27,21 +29,9 @@ export type DevToolPayload = {
   replacement?: string;
 };
 
-const tools: Array<{ id: ToolKind; label: string }> = [
-  { id: "guid", label: "guid" },
-  { id: "cpf", label: "cpf" },
-  { id: "cnpj", label: "cnpj" },
-  { id: "lorem", label: "lorem" },
-  { id: "string", label: "string" },
-  { id: "jwt", label: "jwt" },
-  { id: "json", label: "json" },
-  { id: "base64", label: "base64" },
-  { id: "url", label: "url" },
-  { id: "regex", label: "regex" },
-];
-
 export function DevToolsView({
   activeTool,
+  enabledTools,
   result,
   onToolChange,
   onRun,
@@ -66,6 +56,10 @@ export function DevToolsView({
   const [regexFlags, setRegexFlags] = useState("i");
   const [regexSample, setRegexSample] = useState("");
   const [regexReplacement, setRegexReplacement] = useState("");
+  const visibleTools = devToolDefinitions.filter((tool) =>
+    enabledTools.includes(tool.id),
+  );
+  const isActiveToolEnabled = enabledTools.includes(activeTool);
 
   const buildPayload = useCallback((action: string): DevToolPayload => {
     if (activeTool === "guid") {
@@ -158,6 +152,10 @@ export function DevToolsView({
   }, [buildPayload, onRun]);
 
   useEffect(() => {
+    if (!isActiveToolEnabled) {
+      return;
+    }
+
     if (activeTool === "guid") {
       onRun({ tool: activeTool, action: "generate", format: guidFormat });
     }
@@ -194,6 +192,7 @@ export function DevToolsView({
     includeNumbers,
     includeSymbols,
     includeUppercase,
+    isActiveToolEnabled,
     loremAmount,
     onRun,
     stringLength,
@@ -211,11 +210,11 @@ export function DevToolsView({
     <section className="dev-drawer">
       <div className="drawer-title">
         <strong>./devtools</strong>
-        <span>{activeTool}</span>
+        <span>{isActiveToolEnabled ? activeTool : "disabled"}</span>
       </div>
 
       <div className="tool-tabs">
-        {tools.map((tool) => (
+        {visibleTools.map((tool) => (
           <button
             key={tool.id}
             className={activeTool === tool.id ? "active" : ""}
@@ -226,21 +225,36 @@ export function DevToolsView({
         ))}
       </div>
 
-      <div className="tool-workbench">{renderToolBody()}</div>
+      {visibleTools.length === 0 ? (
+        <div className="empty-state small">
+          Enable at least one tool in settings.
+        </div>
+      ) : (
+        <>
+          <div className="tool-workbench">{renderToolBody()}</div>
 
-      <textarea
-        className={`generated-output output-${result.status}`}
-        readOnly
-        value={result.value}
-        placeholder="<waiting for output>"
-      />
+          <textarea
+            className={`generated-output output-${result.status}`}
+            readOnly
+            value={isActiveToolEnabled ? result.value : ""}
+            placeholder="<waiting for output>"
+          />
 
-      <div className="tool-actions">
-        {renderActions()}
-        <button disabled={result.status !== "ok" || !result.value} onClick={handleCopy}>
-          copy
-        </button>
-      </div>
+          <div className="tool-actions">
+            {renderActions()}
+            <button
+              disabled={
+                !isActiveToolEnabled ||
+                result.status !== "ok" ||
+                !result.value
+              }
+              onClick={handleCopy}
+            >
+              copy
+            </button>
+          </div>
+        </>
+      )}
     </section>
   );
 

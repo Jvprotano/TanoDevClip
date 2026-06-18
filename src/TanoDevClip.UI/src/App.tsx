@@ -2,17 +2,30 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { tanoDevBridge, type BridgeMessage } from "./bridge/tanoDevBridge";
 import { ClipboardView } from "./components/ClipboardView";
 import { DevToolsView, type DevToolPayload } from "./components/DevToolsView";
-import { clipTypes } from "./constants";
+import { SettingsModal } from "./components/SettingsModal";
+import { clipTypes, devToolDefinitions } from "./constants";
 import type {
   AppInfo,
+  AppSettings,
+  AppSettingsUpdate,
   ClipItem,
   ToolKind,
   ToolResult,
 } from "./types";
 
+const previewSettings: AppSettings = {
+  hotKey: "Ctrl+Alt+Space",
+  enabledTools: devToolDefinitions.map((tool) => tool.id),
+  defaults: {
+    hotKey: "Ctrl+Alt+Space",
+    enabledTools: devToolDefinitions.map((tool) => tool.id),
+  },
+};
+
 export default function App() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
   const [bridgeAvailable] = useState(() => tanoDevBridge.isAvailable());
@@ -56,6 +69,16 @@ export default function App() {
       if (message.type === "devtools:run-result") {
         const payload = message.payload as ToolResult;
         setToolResult(payload);
+      }
+
+      if (message.type === "settings:updated") {
+        const payload = message.payload as AppSettings;
+        setAppInfo((current) =>
+          current
+            ? { ...current, hotkey: payload.hotKey, settings: payload }
+            : current,
+        );
+        setStatus("Settings saved");
       }
 
       if (message.type === "clips:updated") {
@@ -121,6 +144,12 @@ export default function App() {
     () => clips.find((clip) => clip.id === selectedClipId) ?? clips[0] ?? null,
     [clips, selectedClipId],
   );
+  const settings = appInfo?.settings ?? previewSettings;
+  const enabledTools = settings.enabledTools;
+  const effectiveActiveTool =
+    enabledTools.length > 0 && !enabledTools.includes(activeTool)
+      ? enabledTools[0]
+      : activeTool;
 
   function handleSearchSubmit() {
     requestClips(query, clipType);
@@ -129,11 +158,6 @@ export default function App() {
   function handleTypeChange(value: string) {
     setClipType(value);
     requestClips(query, value);
-  }
-
-  function handleCopyClip(id: string) {
-    tanoDevBridge.send({ type: "clips:copy", payload: { id } });
-    setStatus("Copied");
   }
 
   function handlePasteClip(id: string) {
@@ -170,6 +194,20 @@ export default function App() {
 
   function handleOpenDevTools() {
     setIsDevToolsOpen((current) => !current);
+  }
+
+  function handleOpenSettings() {
+    setIsSettingsOpen(true);
+  }
+
+  function handleSaveSettings(nextSettings: AppSettingsUpdate) {
+    tanoDevBridge.send({ type: "settings:save", payload: nextSettings });
+    setIsSettingsOpen(false);
+  }
+
+  function handleResetSettings() {
+    tanoDevBridge.send({ type: "settings:reset" });
+    setIsSettingsOpen(false);
   }
 
   return (
@@ -260,15 +298,16 @@ export default function App() {
           selectedClipId={selectedClip?.id ?? null}
           isCollapsed={isCollapsed}
           onSelectClip={setSelectedClipId}
-          onCopyClip={handleCopyClip}
           onPasteClip={handlePasteClip}
+          onOpenSettings={handleOpenSettings}
           onTogglePin={handleTogglePin}
           onCollapse={setIsCollapsed}
         />
 
         {isDevToolsOpen && (
           <DevToolsView
-            activeTool={activeTool}
+            activeTool={effectiveActiveTool}
+            enabledTools={enabledTools}
             result={toolResult}
             onToolChange={setActiveTool}
             onRun={handleRunDevTool}
@@ -276,6 +315,15 @@ export default function App() {
           />
         )}
       </main>
+
+      {isSettingsOpen && (
+        <SettingsModal
+          settings={settings}
+          onClose={() => setIsSettingsOpen(false)}
+          onSave={handleSaveSettings}
+          onReset={handleResetSettings}
+        />
+      )}
     </div>
   );
 }

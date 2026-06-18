@@ -11,7 +11,9 @@ using Microsoft.Web.WebView2.Core;
 using TanoDevClip.Core.Classification;
 using TanoDevClip.Core.Clipboard;
 using TanoDevClip.Core.Repositories;
+using TanoDevClip.Core.Settings;
 using TanoDevClip.DevTools;
+using TanoDevClip.Infrastructure.Local;
 
 using Drawing = System.Drawing;
 using Forms = System.Windows.Forms;
@@ -48,6 +50,7 @@ namespace TanoDevClip.App
         private readonly IClipboardClassifier _clipboardClassifier;
         private readonly GuidGenerator _guidGenerator;
         private readonly DevToolRunner _devToolRunner;
+        private readonly JsonAppSettingsStore _settingsStore;
         private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
         private HwndSource? _hwndSource;
@@ -56,18 +59,23 @@ namespace TanoDevClip.App
         private bool _isExiting;
         private string? _lastCapturedHash;
         private string? _ignoreNextClipboardHash;
+        private AppSettings _settings;
         private IntPtr _returnWindowHandle;
 
         public MainWindow(
             IClipRepository clipRepository,
             IClipboardClassifier clipboardClassifier,
             GuidGenerator guidGenerator,
-            DevToolRunner devToolRunner)
+            DevToolRunner devToolRunner,
+            JsonAppSettingsStore settingsStore,
+            AppSettings settings)
         {
             _clipRepository = clipRepository;
             _clipboardClassifier = clipboardClassifier;
             _guidGenerator = guidGenerator;
             _devToolRunner = devToolRunner;
+            _settingsStore = settingsStore;
+            _settings = NormalizeSettings(settings);
 
             InitializeComponent();
             InitializeTrayIcon();
@@ -89,7 +97,7 @@ namespace TanoDevClip.App
             if (_hwndSource is not null)
             {
                 AddClipboardFormatListener(_hwndSource.Handle);
-                _hotKeyRegistered = RegisterHotKey(_hwndSource.Handle, HotKeyId, ModControl | ModAlt, VkSpace);
+                _hotKeyRegistered = TryRegisterConfiguredHotKey(_settings.HotKey);
             }
         }
 
@@ -197,6 +205,14 @@ namespace TanoDevClip.App
 
                     case "app:drag-window":
                         DragBorderlessWindow();
+                        break;
+
+                    case "settings:save":
+                        await SaveSettingsAsync(root);
+                        break;
+
+                    case "settings:reset":
+                        await ResetSettingsAsync();
                         break;
 
                     case "clips:list":
@@ -353,6 +369,20 @@ namespace TanoDevClip.App
                 return;
             }
 
+            if (!_settings.EnabledTools.Contains(request.Tool, StringComparer.OrdinalIgnoreCase))
+            {
+                await SendMessageToUiAsync(new
+                {
+                    type = "devtools:run-result",
+                    payload = new
+                    {
+                        status = "error",
+                        value = "This tool is disabled in settings."
+                    }
+                });
+                return;
+            }
+
             var result = _devToolRunner.Run(request);
             await SendMessageToUiAsync(new
             {
@@ -363,6 +393,54 @@ namespace TanoDevClip.App
                     value = result.Value
                 }
             });
+        }
+
+        private async Task SaveSettingsAsync(JsonElement root)
+        {
+            if (!root.TryGetProperty("payload", out var payload))
+            {
+                await SendErrorAsync("Missing settings payload.");
+                return;
+            }
+
+            var nextSettings = NormalizeSettings(payload.Deserialize<AppSettings>(_jsonOptions));
+            if (!TryParseHotKey(nextSettings.HotKey, out _))
+            {
+                await SendErrorAsync("Invalid hotkey.");
+                await SendAppInfoAsync();
+                return;
+            }
+
+            var previousSettings = _settings.Clone();
+            if (!string.Equals(previousSettings.HotKey, nextSettings.HotKey, StringComparison.OrdinalIgnoreCase) &&
+                !TryApplyConfiguredHotKey(nextSettings.HotKey))
+            {
+                _ = TryApplyConfiguredHotKey(previousSettings.HotKey);
+                await SendErrorAsync("Hotkey is already in use or could not be registered.");
+                await SendAppInfoAsync();
+                return;
+            }
+
+            _settings = nextSettings;
+            await _settingsStore.SaveAsync(_settings);
+            await SendSettingsUpdatedAsync();
+        }
+
+        private async Task ResetSettingsAsync()
+        {
+            var defaults = AppSettingsDefaults.Create();
+            var previousSettings = _settings.Clone();
+
+            if (!TryApplyConfiguredHotKey(defaults.HotKey))
+            {
+                _ = TryApplyConfiguredHotKey(previousSettings.HotKey);
+                await SendErrorAsync("Default hotkey could not be registered.");
+                await SendAppInfoAsync();
+                return;
+            }
+
+            _settings = await _settingsStore.ResetAsync();
+            await SendSettingsUpdatedAsync();
         }
 
         private async Task GenerateStringAsync(JsonElement root)
@@ -649,6 +727,25 @@ namespace TanoDevClip.App
             });
         }
 
+        private Task SendAppInfoAsync()
+        {
+            return SendMessageToUiAsync(new
+            {
+                type = "app:info",
+                payload = CreateAppInfoPayload()
+            });
+        }
+
+        private async Task SendSettingsUpdatedAsync()
+        {
+            await SendMessageToUiAsync(new
+            {
+                type = "settings:updated",
+                payload = CreateSettingsPayload()
+            });
+            await SendAppInfoAsync();
+        }
+
         private Task SendMessageToUiAsync(object message)
         {
             if (AppWebView.CoreWebView2 is null)
@@ -661,15 +758,50 @@ namespace TanoDevClip.App
             return Task.CompletedTask;
         }
 
-        private static object CreateAppInfoPayload()
+        private object CreateAppInfoPayload()
         {
             return new
             {
                 name = "TanoDev Clip",
                 version = "0.1.0",
                 environment = "Development",
-                hotkey = "Ctrl+Alt+Space"
+                hotkey = _settings.HotKey,
+                settings = CreateSettingsPayload()
             };
+        }
+
+        private object CreateSettingsPayload()
+        {
+            return new
+            {
+                hotKey = _settings.HotKey,
+                enabledTools = _settings.EnabledTools,
+                defaults = new
+                {
+                    hotKey = AppSettingsDefaults.HotKey,
+                    enabledTools = AppSettingsDefaults.EnabledTools
+                }
+            };
+        }
+
+        private static AppSettings NormalizeSettings(AppSettings? settings)
+        {
+            var normalized = settings?.Clone() ?? AppSettingsDefaults.Create();
+
+            if (string.IsNullOrWhiteSpace(normalized.HotKey))
+            {
+                normalized.HotKey = AppSettingsDefaults.HotKey;
+            }
+
+            normalized.HotKey = NormalizeHotKeyText(normalized.HotKey) ?? AppSettingsDefaults.HotKey;
+
+            var knownTools = AppSettingsDefaults.EnabledTools.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            normalized.EnabledTools = (normalized.EnabledTools ?? [])
+                .Where(tool => knownTools.Contains(tool))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            return normalized;
         }
 
         private static ClipSearchFilter ReadClipSearchFilter(JsonElement root)
@@ -918,7 +1050,150 @@ namespace TanoDevClip.App
             SendMessage(handle, WmNcLButtonDown, HtCaption, 0);
         }
 
+        private bool TryRegisterConfiguredHotKey(string hotKey)
+        {
+            if (_hwndSource is null || !TryParseHotKey(hotKey, out var parsed))
+            {
+                return false;
+            }
+
+            return RegisterHotKey(_hwndSource.Handle, HotKeyId, parsed.Modifiers, parsed.VirtualKey);
+        }
+
+        private bool TryApplyConfiguredHotKey(string hotKey)
+        {
+            if (_hwndSource is null)
+            {
+                return true;
+            }
+
+            if (!TryParseHotKey(hotKey, out var parsed))
+            {
+                return false;
+            }
+
+            if (_hotKeyRegistered)
+            {
+                UnregisterHotKey(_hwndSource.Handle, HotKeyId);
+                _hotKeyRegistered = false;
+            }
+
+            _hotKeyRegistered = RegisterHotKey(_hwndSource.Handle, HotKeyId, parsed.Modifiers, parsed.VirtualKey);
+            return _hotKeyRegistered;
+        }
+
+        private static bool TryParseHotKey(string hotKey, out ParsedHotKey parsed)
+        {
+            parsed = default;
+            var modifiers = 0u;
+            uint? virtualKey = null;
+
+            foreach (var part in hotKey.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (part.Equals("Ctrl", StringComparison.OrdinalIgnoreCase) ||
+                    part.Equals("Control", StringComparison.OrdinalIgnoreCase))
+                {
+                    modifiers |= ModControl;
+                    continue;
+                }
+
+                if (part.Equals("Alt", StringComparison.OrdinalIgnoreCase))
+                {
+                    modifiers |= ModAlt;
+                    continue;
+                }
+
+                if (part.Equals("Shift", StringComparison.OrdinalIgnoreCase))
+                {
+                    modifiers |= ModShift;
+                    continue;
+                }
+
+                virtualKey = ParseVirtualKey(part);
+            }
+
+            if (modifiers == 0 || virtualKey is null)
+            {
+                return false;
+            }
+
+            parsed = new ParsedHotKey(modifiers, virtualKey.Value);
+            return true;
+        }
+
+        private static string? NormalizeHotKeyText(string hotKey)
+        {
+            if (!TryParseHotKey(hotKey, out var parsed))
+            {
+                return null;
+            }
+
+            var parts = new List<string>();
+            if ((parsed.Modifiers & ModControl) != 0)
+            {
+                parts.Add("Ctrl");
+            }
+
+            if ((parsed.Modifiers & ModAlt) != 0)
+            {
+                parts.Add("Alt");
+            }
+
+            if ((parsed.Modifiers & ModShift) != 0)
+            {
+                parts.Add("Shift");
+            }
+
+            parts.Add(FormatVirtualKey(parsed.VirtualKey));
+            return string.Join("+", parts);
+        }
+
+        private static uint? ParseVirtualKey(string key)
+        {
+            if (key.Equals("Space", StringComparison.OrdinalIgnoreCase))
+            {
+                return VkSpace;
+            }
+
+            if (key.Length == 1 && char.IsLetterOrDigit(key[0]))
+            {
+                return char.ToUpperInvariant(key[0]);
+            }
+
+            if (key.Length is 2 or 3 &&
+                key[0] is 'F' or 'f' &&
+                int.TryParse(key[1..], out var functionKey) &&
+                functionKey is >= 1 and <= 12)
+            {
+                return (uint)(0x70 + functionKey - 1);
+            }
+
+            return null;
+        }
+
+        private static string FormatVirtualKey(uint virtualKey)
+        {
+            if (virtualKey == VkSpace)
+            {
+                return "Space";
+            }
+
+            if (virtualKey is >= 0x30 and <= 0x5A)
+            {
+                return ((char)virtualKey).ToString();
+            }
+
+            if (virtualKey is >= 0x70 and <= 0x7B)
+            {
+                return $"F{virtualKey - 0x70 + 1}";
+            }
+
+            return "Space";
+        }
+
         private sealed record ForegroundSource(string? ProcessName, string? WindowTitle);
+
+        private readonly record struct ParsedHotKey(uint Modifiers, uint VirtualKey);
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool AddClipboardFormatListener(IntPtr hwnd);
@@ -960,4 +1235,3 @@ namespace TanoDevClip.App
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
     }
 }
-

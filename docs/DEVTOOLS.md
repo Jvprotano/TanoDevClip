@@ -48,6 +48,8 @@ The host responds:
 
 The UI may show error output, but copy should be disabled for error results.
 
+The host also checks the settings before running a tool. Disabled tools should be hidden by the UI and rejected by the host if called directly.
+
 ## Current Tools
 
 | Tool | Actions | C# owner |
@@ -83,6 +85,12 @@ These tools require user input and should run only on an explicit action button:
 - `url`
 - `regex`
 
+## Enabling And Disabling Tools
+
+Tool availability is controlled by application settings. The UI filters DevTools tabs using `settings.enabledTools`, and the host rejects disabled tools in `RunDevToolAsync`.
+
+If every tool is disabled, the DevTools drawer should show an empty state instead of trying to run the previously active tool.
+
 ## Copying Results
 
 The UI sends:
@@ -112,9 +120,10 @@ The UI should not persist DevTools output directly.
 3. Add an action branch in `DevToolRunner` that only delegates to that class.
 4. Add the `ToolKind` value in `src/TanoDevClip.UI/src/types.ts`.
 5. Add a tab and controls in `DevToolsView.tsx`.
-6. Decide whether it auto-generates on open or requires explicit action.
-7. Add unit tests in `tests/TanoDevClip.Tests`.
-8. Run:
+6. Add the tool to settings defaults in `AppSettingsDefaults.EnabledTools`.
+7. Decide whether it auto-generates on open or requires explicit action.
+8. Add unit tests in `tests/TanoDevClip.Tests`.
+9. Run:
 
 ```powershell
 dotnet test TanoDevClip.sln

@@ -26,6 +26,7 @@ TanoDev Clip is a local-first clipboard manager for Windows, built for developer
 - Copy a clip back to the clipboard.
 - Double-click a clip to paste it into the app/window that was active before TanoDev Clip opened.
 - DevTools panel with GUID, CPF, CNPJ, Lorem Ipsum, random strings, JWT decode, JSON format/validate, Base64, URL encode/decode and regex helpers.
+- Settings modal to enable/disable DevTools, configure the global hotkey and reset defaults.
 - Generated/copied DevTools output is saved to clipboard history.
 
 ## Architecture
@@ -34,7 +35,7 @@ The app has a native host and a web UI. Keep the boundary clear:
 
 - `TanoDevClip.App`: WPF shell, WebView2, tray, hotkeys, Win32 clipboard listener, native paste behavior and UI bridge messages.
 - `TanoDevClip.Core`: clipboard entities, enums, interfaces and classification.
-- `TanoDevClip.Infrastructure`: SQLite bootstrap, repositories and local path helpers.
+- `TanoDevClip.Infrastructure`: SQLite bootstrap, repositories, settings storage and local path helpers.
 - `TanoDevClip.DevTools`: pure DevTools logic. This is the source of truth for generators, validators and text transforms.
 - `TanoDevClip.UI`: React UI. It renders controls, manages UI state and sends bridge messages to the host. It should not duplicate DevTools business rules.
 - `TanoDevClip.Tests`: unit tests for classifier, generators and DevTools behavior.
@@ -141,11 +142,28 @@ The local database is created automatically on startup:
 
 The repository layer is intentionally small. If FTS5 is added later, keep the UI contract stable and adapt the repository implementation.
 
+## Settings
+
+Application settings are stored separately from clip history:
+
+```text
+%LocalAppData%/TanoDevClip/settings.json
+```
+
+Settings currently include:
+
+- enabled DevTools
+- global hotkey
+
+The default hotkey is `Ctrl+Alt+Space`. Settings can be reset to defaults from the settings modal.
+
 ## Hotkeys
 
-- `Ctrl+Alt+Space`: show the window and focus search.
+- `Ctrl+Alt+Space`: show the window and focus search by default.
 - If the window is visible and focused, the same hotkey hides it.
 - `Ctrl+D`: toggle the DevTools panel inside the app.
+
+The global hotkey can be changed in settings. The host re-registers the Win32 hotkey immediately after saving.
 
 If another app already owns the global hotkey, TanoDev Clip continues running without crashing.
 

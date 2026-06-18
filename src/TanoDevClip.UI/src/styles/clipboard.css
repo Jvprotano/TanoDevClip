@@ -170,6 +170,18 @@
   background: rgba(69, 217, 255, 0.08);
 }
 
+.settings-gear-button {
+  min-width: 34px;
+  color: var(--amber) !important;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.settings-gear-button:hover {
+  border-color: var(--amber) !important;
+  background: rgba(255, 209, 102, 0.1) !important;
+}
+
 .clip-detail pre {
   min-height: 0;
   margin: 0 6px 6px;

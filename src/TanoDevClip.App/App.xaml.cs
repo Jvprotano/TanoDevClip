@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using TanoDevClip.Core.Classification;
+using TanoDevClip.Core.Settings;
 using TanoDevClip.DevTools;
 using TanoDevClip.Infrastructure.Database;
 using TanoDevClip.Infrastructure.Local;
@@ -33,10 +34,17 @@ namespace TanoDevClip.App
             var classifier = new DefaultClipboardClassifier();
             var guidGenerator = new GuidGenerator();
             var devToolRunner = new DevToolRunner(guidGenerator);
+            var settingsStore = new JsonAppSettingsStore(AppPaths.GetSettingsPath());
+            var settings = await settingsStore.LoadAsync();
 
-            MainWindow = new MainWindow(repository, classifier, guidGenerator, devToolRunner);
+            MainWindow = new MainWindow(
+                repository,
+                classifier,
+                guidGenerator,
+                devToolRunner,
+                settingsStore,
+                settings);
             MainWindow.Show();
         }
     }
 }
-

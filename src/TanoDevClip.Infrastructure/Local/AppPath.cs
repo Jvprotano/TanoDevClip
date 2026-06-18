@@ -14,5 +14,10 @@ namespace TanoDevClip.Infrastructure.Local
         {
             return Path.Combine(GetAppDataDirectory(), "tanodevclip.db");
         }
+
+        public static string GetSettingsPath()
+        {
+            return Path.Combine(GetAppDataDirectory(), "settings.json");
+        }
     }
 }

@@ -1,0 +1,137 @@
+.settings-backdrop {
+  position: fixed;
+  inset: 8px;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(3, 7, 8, 0.72);
+}
+
+.settings-modal {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(100%, 330px);
+  max-height: calc(100vh - 34px);
+  border: 1px solid var(--terminal-line-strong);
+  background: #071216;
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.45),
+    0 0 28px rgba(69, 217, 255, 0.08);
+}
+
+.settings-header,
+.settings-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--terminal-line);
+  padding: 8px;
+}
+
+.settings-footer {
+  border-top: 1px solid var(--terminal-line);
+  border-bottom: 0;
+}
+
+.settings-header strong,
+.settings-section-title strong {
+  display: block;
+  color: var(--green);
+  font-size: 12px;
+}
+
+.settings-header span,
+.settings-section-title span {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.settings-header button,
+.settings-footer button,
+.tool-toggle,
+.hotkey-grid label {
+  border: 1px solid var(--terminal-line-strong);
+  border-radius: 2px;
+  background: #05090b;
+  color: var(--text);
+}
+
+.settings-header button,
+.settings-footer button {
+  padding: 6px 8px;
+  color: var(--cyan);
+}
+
+.settings-body {
+  display: grid;
+  gap: 9px;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px;
+}
+
+.settings-section {
+  display: grid;
+  gap: 7px;
+}
+
+.settings-section-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tool-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.tool-toggle,
+.hotkey-grid label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 6px;
+  font-size: 11px;
+}
+
+.tool-toggle input,
+.hotkey-grid input {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--green);
+}
+
+.tool-toggle span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hotkey-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.hotkey-grid select {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--terminal-line-strong);
+  border-radius: 2px;
+  background: #05090b;
+  color: var(--amber);
+  outline: none;
+  padding: 6px 7px;
+}
+
+.settings-footer > div {
+  display: flex;
+  gap: 5px;
+}

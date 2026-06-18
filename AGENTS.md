@@ -11,6 +11,7 @@ TanoDev Clip is a Windows desktop clipboard manager for developers. It uses a WP
 - Keep DevTools business logic in `src/TanoDevClip.DevTools`.
 - Keep React focused on UI state, rendering and bridge messages.
 - Keep Win32, clipboard, hotkey, tray and paste behavior in `src/TanoDevClip.App`.
+- Keep settings persistence in `src/TanoDevClip.Infrastructure`.
 - Keep persistence in `src/TanoDevClip.Infrastructure`.
 - Keep shared clipboard entities, interfaces and classification in `src/TanoDevClip.Core`.
 
@@ -23,6 +24,7 @@ Do not implement a second copy of CPF/CNPJ, JSON, JWT, Base64, URL or regex logi
 - Prefer one C# class per DevTool, matching the existing style of `GuidGenerator`, `StringGenerator` and `LoremGenerator`.
 - Host-facing tool methods should return `DevToolResult` so success/error handling is consistent.
 - React sends `devtools:run` and displays `devtools:run-result`.
+- React filters DevTools by `settings.enabledTools`; the host must still reject disabled tools.
 - Tools that generate without required input should auto-run when opened:
   - GUID
   - CPF
@@ -44,6 +46,14 @@ Do not implement a second copy of CPF/CNPJ, JSON, JWT, Base64, URL or regex logi
 - Keep `clips:copy` and `clips:paste` separate.
 - Programmatic clipboard writes must set the ignore hash to avoid immediately recapturing the app's own output.
 - When pasting into a previous window, call `ShowWindow(SW_RESTORE)` only if the target is minimized. Do not restore an already maximized target window.
+
+## Settings Rules
+
+- Settings are stored in `%LocalAppData%/TanoDevClip/settings.json`.
+- `settings:save` must validate and apply the hotkey before persisting.
+- If a new hotkey cannot be registered, keep the previous hotkey active and report an error.
+- `settings:reset` restores `AppSettingsDefaults`.
+- The default global hotkey is `Ctrl+Alt+Space`.
 
 ## Validation
 
