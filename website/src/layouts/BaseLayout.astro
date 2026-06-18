@@ -12,9 +12,9 @@ const {
   description = siteConfig.description,
 } = Astro.props;
 
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
 const socialImageUrl = siteConfig.media.socialPreviewImage
-  ? new URL(withBase(siteConfig.media.socialPreviewImage), Astro.site ?? Astro.url)
+  ? new URL(withBase(siteConfig.media.socialPreviewImage), Astro.site ?? Astro.url).href
   : undefined;
 ---
 
