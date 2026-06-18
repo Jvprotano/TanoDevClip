@@ -1,78 +1,88 @@
 ---
-const baseUrl = import.meta.env.BASE_URL;
+import { siteConfig, withBase } from '../config/site';
 
-const generators = [
-  "GUID generation",
-  "CPF generation",
-  "CNPJ generation",
-  "Lorem Ipsum generation",
-  "Random string generation"
+const groups = [
+  {
+    title: 'Generate',
+    tools: ['GUID', 'CPF and CNPJ', 'Lorem Ipsum', 'Random strings'],
+  },
+  {
+    title: 'Transform',
+    tools: ['JSON format and minify', 'Base64 encode and decode', 'URL encode and decode'],
+  },
+  {
+    title: 'Inspect and validate',
+    tools: ['CPF and CNPJ validation', 'JWT decode', '.NET regular expression runner'],
+  },
 ];
 
-const transformers = [
-  "JWT decode",
-  "JSON format",
-  "Base64 encode / decode",
-  "URL encode / decode",
-  "Regex tester"
-];
+const previewImage = siteConfig.media.devToolsPreviewImage;
 ---
 
-<section id="devtools" class="devtools-section">
+<section id="devtools" class="devtools-section" aria-labelledby="devtools-title">
   <div class="container">
     <div class="header">
-      <h2 class="title mono"><span class="prompt">&gt;</span> ./devtools</h2>
+      <h2 id="devtools-title" class="title mono">
+        <span class="prompt" aria-hidden="true">&gt;</span> ./devtools
+      </h2>
       <p class="description">
-        Access small developer utilities directly within your clipboard workflow. 
-        Generated output is automatically copied to your history.
+        Run focused developer utilities without opening another website. When you copy a result,
+        TanoDev Clip saves it to clipboard history and places it on the system clipboard.
       </p>
     </div>
-    
+
     <div class="layout">
       <div class="tools-grid">
-        <div class="tool-group">
-          <h3 class="group-title mono">Generate</h3>
-          <ul class="tool-list">
-            {generators.map(tool => (
-              <li>
-                <span class="bullet mono">-</span>
-                {tool}
-              </li>
-            ))}
-          </ul>
-        </div>
-        
-        <div class="tool-group">
-          <h3 class="group-title mono">Transform</h3>
-          <ul class="tool-list">
-            {transformers.map(tool => (
-              <li>
-                <span class="bullet mono">-</span>
-                {tool}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {groups.map(group => (
+          <article class="tool-group">
+            <h3 class="group-title mono">{group.title}</h3>
+            <ul class="tool-list">
+              {group.tools.map(tool => (
+                <li>
+                  <span class="bullet mono" aria-hidden="true">-</span>
+                  {tool}
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))}
       </div>
-      
+
       <div class="preview-container">
-        <!-- Using a placeholder pattern that feels technical -->
-        <div class="placeholder">
-          <img 
-            src={`${baseUrl}/assets/devtools-demo.png`} 
-            alt="TanoDev Clip Developer Tools showing the JSON Formatter"
+        {previewImage ? (
+          <img
+            src={withBase(previewImage)}
+            alt="TanoDev Clip DevTools panel"
             class="screenshot"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            width="1200"
+            height="900"
+            loading="lazy"
+            decoding="async"
           />
-          <div class="fallback-placeholder">
-            <div class="mono">
-              <span class="prompt">&gt;</span> awaiting visual asset...<br/>
-              <span class="muted">// Place 'devtools-demo.png' in src/assets/</span>
+        ) : (
+          <div
+            class="media-placeholder"
+            role="img"
+            aria-label="Placeholder for a future TanoDev Clip DevTools screenshot"
+          >
+            <div class="terminal-example mono" aria-hidden="true">
+              <span class="command">$ json.format('&#123;"status":"ok"&#125;')</span>
+              <pre><code>&#123;
+  "status": "ok"
+&#125;</code></pre>
+              <span class="success">✓ ready to copy</span>
             </div>
+            <small class="asset-note mono">
+              Add <code>website/public/media/devtools-preview.png</code> and configure it in <code>src/config/site.ts</code>.
+            </small>
           </div>
-        </div>
+        )}
       </div>
     </div>
+
+    <p class="semantics-note mono">
+      regex.engine = ".NET" &nbsp;|&nbsp; jwt.mode = "decode only"
+    </p>
   </div>
 </section>
 
@@ -80,112 +90,151 @@ const transformers = [
   .devtools-section {
     padding: var(--space-4xl) 0;
   }
-  
+
   .header {
     margin-bottom: var(--space-3xl);
-    max-width: 600px;
+    max-width: 680px;
   }
-  
+
   .title {
     font-size: 2rem;
     color: var(--color-action);
     margin-bottom: var(--space-md);
   }
-  
+
   .prompt {
-    color: var(--color-action-muted);
+    color: var(--color-accent);
   }
-  
+
   .description {
     font-size: 1.1rem;
     color: var(--color-text-muted);
     line-height: 1.6;
   }
-  
+
   .layout {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--space-3xl);
   }
-  
-  @media (min-width: 768px) {
-    .layout {
-      grid-template-columns: 1fr 1fr;
-      align-items: center;
-    }
-  }
-  
+
   .tools-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--space-xl);
+    gap: var(--space-lg);
   }
-  
-  @media (min-width: 480px) {
-    .tools-grid {
-      grid-template-columns: 1fr 1fr;
-    }
+
+  .tool-group {
+    padding: var(--space-lg);
+    background: var(--color-bg-panel);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
   }
-  
+
   .group-title {
-    font-size: 1.05rem;
+    font-size: 1rem;
     color: var(--color-warning);
     margin-bottom: var(--space-md);
     letter-spacing: 0.05em;
     text-transform: uppercase;
   }
-  
+
   .tool-list {
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
   }
-  
+
   .tool-list li {
     display: flex;
     gap: var(--space-sm);
     color: var(--color-text);
   }
-  
+
   .bullet {
     color: var(--color-border-strong);
   }
-  
+
   .preview-container {
     background-color: var(--color-bg-panel);
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-md);
     padding: var(--space-sm);
   }
-  
-  .placeholder {
-    width: 100%;
-    display: flex;
-    border: 1px solid var(--color-border-strong);
-    background-color: var(--color-bg-root);
-  }
-  
+
   .screenshot {
     width: 100%;
     height: auto;
     display: block;
+    border: 1px solid var(--color-border-strong);
   }
-  
-  .fallback-placeholder {
-    display: none;
+
+  .media-placeholder {
+    min-height: 360px;
+    display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
-    width: 100%;
-    aspect-ratio: 4/3;
-    text-align: center;
-    font-size: 0.9rem;
-    background-image: linear-gradient(45deg, var(--color-bg-panel) 25%, transparent 25%, transparent 75%, var(--color-bg-panel) 75%, var(--color-bg-panel)), linear-gradient(45deg, var(--color-bg-panel) 25%, transparent 25%, transparent 75%, var(--color-bg-panel) 75%, var(--color-bg-panel));
-    background-size: 20px 20px;
-    background-position: 0 0, 10px 10px;
+    gap: var(--space-xl);
+    padding: var(--space-xl);
+    border: 1px solid var(--color-border-strong);
+    background-color: var(--color-bg-root);
   }
-  
-  .muted {
+
+  .terminal-example {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
     color: var(--color-text-muted);
+  }
+
+  .command {
+    color: var(--color-action);
+  }
+
+  pre {
+    overflow-x: auto;
+    padding: var(--space-md);
+    background: var(--color-bg-input);
+    border: 1px solid var(--color-border-subtle);
+    color: var(--color-text);
+  }
+
+  .success {
+    color: var(--color-accent);
+  }
+
+  .asset-note {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  .asset-note code {
+    color: var(--color-action);
+  }
+
+  .semantics-note {
+    margin-top: var(--space-lg);
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    text-align: center;
+  }
+
+  @media (min-width: 640px) {
+    .tools-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: 900px) {
+    .layout {
+      grid-template-columns: 1.05fr 0.95fr;
+      align-items: center;
+    }
+
+    .tools-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
