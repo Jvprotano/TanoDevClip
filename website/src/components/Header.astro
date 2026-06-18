@@ -1,24 +1,47 @@
 ---
-const downloadUrl = "https://github.com/Jvprotano/TanoDevClip/releases/latest/download/ProtanoSoftware.TanoDevClip-Setup.exe";
+import { siteConfig, withBase } from '../config/site';
+
+const navItems = [
+  { href: '#workflow', label: 'Workflow' },
+  { href: '#features', label: 'Features' },
+  { href: '#devtools', label: 'DevTools' },
+  { href: '#privacy', label: 'Privacy' },
+  { href: '#open-source', label: 'Open Source' },
+];
 ---
+
+<a class="skip-link" href="#main-content">Skip to content</a>
 
 <header class="header">
   <div class="container header-inner">
-    <div class="brand">
-      <span class="prompt mono">&gt;</span>
+    <a href={withBase()} class="brand" aria-label="TanoDev Clip home">
+      <span class="prompt mono" aria-hidden="true">&gt;</span>
       <span class="name">TanoDev Clip</span>
-    </div>
-    
-    <nav class="nav" aria-label="Main Navigation">
+    </a>
+
+    <nav class="desktop-nav" aria-label="Main navigation">
       <ul class="nav-list">
-        <li><a href="#features">Features</a></li>
-        <li><a href="#devtools">DevTools</a></li>
-        <li><a href="https://github.com/Jvprotano/TanoDevClip" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        {navItems.map(item => (
+          <li><a href={item.href}>{item.label}</a></li>
+        ))}
+        <li>
+          <a href={siteConfig.repositoryUrl} target="_blank" rel="noopener noreferrer">
+            GitHub<span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </li>
       </ul>
     </nav>
-    
-    <div class="actions">
-      <a href={downloadUrl} class="button primary" aria-label="Download TanoDev Clip for Windows">
+
+    <div class="header-actions">
+      <details class="mobile-nav">
+        <summary aria-label="Open navigation menu">Menu</summary>
+        <nav class="mobile-nav-panel" aria-label="Mobile navigation">
+          {navItems.map(item => <a href={item.href}>{item.label}</a>)}
+          <a href={siteConfig.repositoryUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
+        </nav>
+      </details>
+
+      <a href={siteConfig.downloadUrl} class="button button-primary download-button">
         Download <span class="os">Windows</span>
       </a>
     </div>
@@ -31,85 +54,144 @@ const downloadUrl = "https://github.com/Jvprotano/TanoDevClip/releases/latest/do
     top: 0;
     z-index: 100;
     height: var(--header-height);
-    background-color: rgba(7, 11, 13, 0.9);
+    background-color: rgba(7, 11, 13, 0.92);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-border-subtle);
   }
-  
+
   .header-inner {
+    position: relative;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: var(--space-md);
   }
-  
+
   .brand {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
+    color: var(--color-text);
     font-weight: 700;
     font-size: 1.1rem;
     letter-spacing: 0.01em;
+    white-space: nowrap;
   }
-  
+
+  .brand:hover {
+    color: var(--color-text);
+  }
+
   .prompt {
     color: var(--color-accent);
     font-weight: 600;
   }
-  
-  .nav {
+
+  .desktop-nav {
     display: none;
   }
-  
-  @media (min-width: 768px) {
-    .nav {
-      display: block;
-    }
-  }
-  
+
   .nav-list {
     display: flex;
+    align-items: center;
     gap: var(--space-lg);
   }
-  
+
   .nav-list a {
     color: var(--color-text-muted);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
   }
-  
+
   .nav-list a:hover {
     color: var(--color-text);
   }
-  
-  .button {
-    display: inline-flex;
+
+  .header-actions {
+    display: flex;
     align-items: center;
-    gap: var(--space-xs);
-    padding: 6px 14px;
-    border-radius: var(--radius-sm);
+    gap: var(--space-sm);
+  }
+
+  .download-button {
+    min-height: 38px;
+    padding: 7px 14px;
     font-size: 0.9rem;
-    font-weight: 500;
-    border: 1px solid var(--color-border-strong);
-    background-color: var(--color-bg-input);
-    color: var(--color-text);
-    transition: all var(--transition-fast);
   }
-  
-  .button.primary {
-    background-color: var(--color-accent-muted);
-    border-color: var(--color-border-accent);
-    color: var(--color-accent);
-  }
-  
-  .button.primary:hover {
-    background-color: rgba(85, 249, 145, 0.2);
-    border-color: var(--color-accent);
-    transform: translateY(-1px);
-    box-shadow: 0 0 12px var(--color-accent-glow);
-  }
-  
+
   .os {
     font-size: 0.8em;
     opacity: 0.8;
+  }
+
+  .mobile-nav {
+    position: relative;
+  }
+
+  .mobile-nav summary {
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 12px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.9rem;
+  }
+
+  .mobile-nav summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mobile-nav[open] summary {
+    color: var(--color-text);
+    border-color: var(--color-action);
+  }
+
+  .mobile-nav-panel {
+    position: absolute;
+    top: calc(100% + var(--space-sm));
+    right: 0;
+    width: min(260px, calc(100vw - 32px));
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-sm);
+    background: var(--color-bg-panel-secondary);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-panel);
+  }
+
+  .mobile-nav-panel a {
+    padding: 10px 12px;
+    color: var(--color-text-muted);
+    border-radius: var(--radius-sm);
+  }
+
+  .mobile-nav-panel a:hover {
+    color: var(--color-text);
+    background: var(--color-bg-input);
+  }
+
+  @media (min-width: 900px) {
+    .desktop-nav {
+      display: block;
+    }
+
+    .mobile-nav {
+      display: none;
+    }
+  }
+
+  @media (max-width: 479px) {
+    .name {
+      font-size: 0.95rem;
+    }
+
+    .download-button .os {
+      display: none;
+    }
   }
 </style>
