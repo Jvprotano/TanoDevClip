@@ -1,33 +1,38 @@
 ---
+import { siteConfig, withBase } from '../config/site';
+
 const year = new Date().getFullYear();
 ---
 
 <footer class="footer">
   <div class="container footer-inner">
     <div class="footer-brand">
-      <span class="prompt mono">&gt;</span>
-      <span class="name">TanoDev Clip</span>
-      <p class="tagline">Clipboard manager for developers.</p>
+      <a href={withBase()} class="brand-link">
+        <span class="prompt mono" aria-hidden="true">&gt;</span>
+        <span class="name">TanoDev Clip</span>
+      </a>
+      <p class="tagline">A local-first clipboard manager for developers.</p>
     </div>
-    
-    <div class="footer-links">
+
+    <nav class="footer-links" aria-label="Project links">
       <div class="link-group">
-        <h3 class="mono">Project</h3>
+        <h2 class="mono">Project</h2>
         <ul>
-          <li><a href="https://github.com/Jvprotano/TanoDevClip">GitHub Repository</a></li>
-          <li><a href="https://github.com/Jvprotano/TanoDevClip/releases">Releases</a></li>
-          <li><a href="https://github.com/Jvprotano/TanoDevClip/issues/new">Report an Issue</a></li>
+          <li><a href={siteConfig.repositoryUrl} target="_blank" rel="noopener noreferrer">GitHub repository</a></li>
+          <li><a href={siteConfig.releasesUrl} target="_blank" rel="noopener noreferrer">Releases</a></li>
+          <li><a href={siteConfig.newIssueUrl} target="_blank" rel="noopener noreferrer">Report an issue</a></li>
+          <li><a href={siteConfig.contributingUrl} target="_blank" rel="noopener noreferrer">Contributing guide</a></li>
         </ul>
       </div>
-    </div>
+    </nav>
   </div>
-  
+
   <div class="container footer-bottom">
     <div class="copyright">
       &copy; {year} TanoDev Clip contributors. MIT License.
     </div>
-    <div class="attribution">
-      Local-first &bull; Open Source
+    <div class="attribution mono">
+      local-first = true &bull; source.available = true
     </div>
   </div>
 </footer>
@@ -39,80 +44,88 @@ const year = new Date().getFullYear();
     margin-top: auto;
     background-color: var(--color-bg-panel);
   }
-  
+
   .footer-inner {
     display: flex;
     flex-direction: column;
     gap: var(--space-xl);
     margin-bottom: var(--space-2xl);
   }
-  
-  @media (min-width: 768px) {
-    .footer-inner {
-      flex-direction: row;
-      justify-content: space-between;
-    }
+
+  .brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--color-text);
   }
-  
-  .footer-brand .prompt {
+
+  .brand-link:hover {
+    color: var(--color-text);
+  }
+
+  .prompt {
     color: var(--color-accent);
     font-weight: 600;
   }
-  
-  .footer-brand .name {
+
+  .name {
     font-weight: 700;
     font-size: 1.1rem;
     letter-spacing: 0.01em;
   }
-  
+
   .tagline {
     color: var(--color-text-muted);
     font-size: 0.9rem;
     margin-top: var(--space-xs);
   }
-  
+
   .footer-links {
     display: flex;
     gap: var(--space-3xl);
   }
-  
-  .link-group h3 {
+
+  .link-group h2 {
     font-size: 0.85rem;
     color: var(--color-text);
     margin-bottom: var(--space-md);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
-  
+
   .link-group ul {
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
   }
-  
+
   .link-group a {
     color: var(--color-text-muted);
     font-size: 0.9rem;
   }
-  
+
   .link-group a:hover {
-    color: var(--color-action);
+    color: var(--color-action-hover);
   }
-  
+
   .footer-bottom {
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
     border-top: 1px solid var(--color-border-subtle);
     padding-top: var(--space-xl);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     color: var(--color-text-muted);
   }
-  
+
   @media (min-width: 768px) {
+    .footer-inner,
     .footer-bottom {
       flex-direction: row;
       justify-content: space-between;
+    }
+
+    .footer-bottom {
       align-items: center;
     }
   }
