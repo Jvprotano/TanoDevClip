@@ -6,6 +6,11 @@ on:
     paths:
       - "website/**"
       - ".github/workflows/pages.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "website/**"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -14,8 +19,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: "pages-${{ github.ref }}"
+  cancel-in-progress: true
 
 env:
   BUILD_PATH: "website"
@@ -55,11 +60,13 @@ jobs:
             --base "${{ steps.pages.outputs.base_path }}"
 
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ env.BUILD_PATH }}/dist
 
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
