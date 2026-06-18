@@ -5,6 +5,7 @@ on:
     branches: ["main"]
     paths:
       - "website/**"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -42,10 +43,14 @@ jobs:
         working-directory: ${{ env.BUILD_PATH }}
         run: npm ci
 
+      - name: Validate website
+        working-directory: ${{ env.BUILD_PATH }}
+        run: npm run check
+
       - name: Build with Astro
         working-directory: ${{ env.BUILD_PATH }}
         run: |
-          npm run build \
+          npm run astro -- build \
             --site "${{ steps.pages.outputs.origin }}" \
             --base "${{ steps.pages.outputs.base_path }}"
 
