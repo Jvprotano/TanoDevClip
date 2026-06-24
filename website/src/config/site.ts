@@ -11,7 +11,7 @@ export const siteConfig = {
   contributingUrl:
     "https://github.com/Jvprotano/TanoDevClip/blob/main/CONTRIBUTING.md",
   downloadUrl:
-    "https://github.com/Jvprotano/TanoDevClip/releases/latest/download/ProtanoSoftware.TanoDevClip-Setup.exe",
+    "https://github.com/Jvprotano/TanoDevClip/releases/latest/download/ProtanoSoftware.TanoDevClip-win-Setup.exe",
   support: {
     label: "Buy me a coffee",
     stripeUrl: "https://buy.stripe.com/7sY7sMdiCfLJ3JPbpuak000",

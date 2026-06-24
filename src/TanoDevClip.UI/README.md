@@ -4,7 +4,7 @@
 
 **A fast, local-first clipboard manager for Windows, built for developers.**
 
-[Download for Windows](https://github.com/Jvprotano/TanoDevClip/releases/latest/download/ProtanoSoftware.TanoDevClip-Setup.exe)
+[Download for Windows](https://github.com/Jvprotano/TanoDevClip/releases/latest/download/ProtanoSoftware.TanoDevClip-win-Setup.exe)
 ·
 [Releases](https://github.com/Jvprotano/TanoDevClip/releases)
 ·
@@ -67,7 +67,7 @@ Generated results can be copied directly and are added to clipboard history.
 
 Download the latest installer:
 
-**[Download TanoDev Clip for Windows](https://github.com/Jvprotano/TanoDevClip/releases/latest/download/ProtanoSoftware.TanoDevClip-Setup.exe)**
+**[Download TanoDev Clip for Windows](https://github.com/Jvprotano/TanoDevClip/releases/latest/download/ProtanoSoftware.TanoDevClip-win-Setup.exe)**
 
 ### Requirements
 
