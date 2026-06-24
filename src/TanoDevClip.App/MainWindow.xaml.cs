@@ -6,7 +6,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Threading;
 using Microsoft.Web.WebView2.Core;
 using TanoDevClip.Core.Classification;
 using TanoDevClip.Core.Clipboard;
@@ -754,12 +756,7 @@ namespace TanoDevClip.App
             }
 
             RememberReturnWindow();
-            Show();
-            WindowState = WindowState.Normal;
-            Activate();
-            Topmost = true;
-            Topmost = false;
-            Focus();
+            ShowWindowForSearch();
             await FocusSearchAsync();
         }
 
@@ -772,9 +769,12 @@ namespace TanoDevClip.App
             });
         }
 
-        private Task FocusSearchAsync()
+        private async Task FocusSearchAsync()
         {
-            return SendMessageToUiAsync(new
+            FocusWebViewForKeyboardInput();
+            await Dispatcher.InvokeAsync(FocusWebViewForKeyboardInput, DispatcherPriority.Input);
+
+            await SendMessageToUiAsync(new
             {
                 type = "app:focus-search"
             });
@@ -1046,10 +1046,37 @@ namespace TanoDevClip.App
         private void ShowFromTray()
         {
             RememberReturnWindow();
+            ShowWindowForSearch();
+            _ = FocusSearchAsync();
+        }
+
+        private void ShowWindowForSearch()
+        {
             Show();
             WindowState = WindowState.Normal;
             Activate();
-            _ = FocusSearchAsync();
+            Topmost = true;
+            Topmost = false;
+            Focus();
+
+            var handle = new WindowInteropHelper(this).Handle;
+            if (handle != IntPtr.Zero)
+            {
+                SetForegroundWindow(handle);
+            }
+        }
+
+        private void FocusWebViewForKeyboardInput()
+        {
+            if (!IsVisible)
+            {
+                return;
+            }
+
+            Activate();
+            Focus();
+            AppWebView.Focus();
+            Keyboard.Focus(AppWebView);
         }
 
         private async Task PasteIntoReturnWindowAsync()

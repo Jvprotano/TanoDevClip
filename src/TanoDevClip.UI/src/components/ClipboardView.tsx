@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { ClipItem } from "../types";
 import { formatDate, summarize } from "../utils/format";
 
@@ -24,6 +25,12 @@ export function ClipboardView({
   onTogglePin,
   onCollapse,
 }: ClipboardViewProps) {
+  const activeClipRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    activeClipRef.current?.scrollIntoView({ block: "nearest" });
+  }, [selectedClipId]);
+
   return (
     <>
       <div className="clip-list" aria-label="Clipboard history">
@@ -39,6 +46,7 @@ export function ClipboardView({
               className={
                 clip.id === selectedClipId ? "clip-item active" : "clip-item"
               }
+              ref={clip.id === selectedClipId ? activeClipRef : undefined}
               onClick={() => onSelectClip(clip.id)}
               onDoubleClick={() => onPasteClip(clip.id)}
             >

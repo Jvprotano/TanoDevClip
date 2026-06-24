@@ -41,7 +41,7 @@ export default function App() {
   });
 
   const requestClips = useCallback(
-    (nextQuery = query, nextType = clipType) => {
+    (nextQuery: string, nextType: string) => {
       tanoDevBridge.send({
         type: "clips:list",
         payload: {
@@ -51,8 +51,47 @@ export default function App() {
         },
       });
     },
-    [clipType, query],
+    [],
   );
+
+  const selectedClip = useMemo(
+    () => clips.find((clip) => clip.id === selectedClipId) ?? clips[0] ?? null,
+    [clips, selectedClipId],
+  );
+
+  const moveSelectedClip = useCallback(
+    (offset: number) => {
+      setSelectedClipId((currentId) => {
+        if (clips.length === 0) {
+          return null;
+        }
+
+        const currentIndex = currentId
+          ? clips.findIndex((clip) => clip.id === currentId)
+          : -1;
+
+        if (currentIndex === -1) {
+          return clips[offset > 0 ? 0 : clips.length - 1].id;
+        }
+
+        const nextIndex = Math.min(
+          Math.max(currentIndex + offset, 0),
+          clips.length - 1,
+        );
+
+        return clips[nextIndex].id;
+      });
+    },
+    [clips],
+  );
+
+  const pasteSelectedClip = useCallback(() => {
+    if (!selectedClip) {
+      return;
+    }
+
+    handlePasteClip(selectedClip.id);
+  }, [selectedClip]);
 
   useEffect(() => {
     const unsubscribe = tanoDevBridge.onMessage((message: BridgeMessage) => {
@@ -62,8 +101,20 @@ export default function App() {
 
       if (message.type === "clips:list-result") {
         const payload = message.payload as { clips: ClipItem[] };
-        setClips(payload.clips ?? []);
-        setStatus(`${payload.clips?.length ?? 0} clips`);
+        const nextClips = payload.clips ?? [];
+        setClips(nextClips);
+        setSelectedClipId((currentId) => {
+          if (nextClips.length === 0) {
+            return null;
+          }
+
+          if (currentId && nextClips.some((clip) => clip.id === currentId)) {
+            return currentId;
+          }
+
+          return nextClips[0].id;
+        });
+        setStatus(`${nextClips.length} clips`);
       }
 
       if (message.type === "devtools:run-result") {
@@ -97,8 +148,15 @@ export default function App() {
       }
     });
 
+    tanoDevBridge.send({ type: "app:get-info" });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       const target = event.target as HTMLElement;
+      const isSearchInput = target === searchInputRef.current;
 
       const isTypingSomewhere =
         target.tagName === "INPUT" ||
@@ -119,6 +177,24 @@ export default function App() {
         return;
       }
 
+      if (isSettingsOpen) return;
+
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        if (isTypingSomewhere && !isSearchInput) return;
+
+        event.preventDefault();
+        moveSelectedClip(event.key === "ArrowDown" ? 1 : -1);
+        return;
+      }
+
+      if (event.key === "Enter") {
+        if (isTypingSomewhere && !isSearchInput) return;
+
+        event.preventDefault();
+        pasteSelectedClip();
+        return;
+      }
+
       if (isTypingSomewhere) return;
       if (event.ctrlKey || event.altKey || event.metaKey) return;
       if (event.key.length !== 1) return;
@@ -129,21 +205,21 @@ export default function App() {
       setQuery((current) => current + event.key);
     }
 
-    tanoDevBridge.send({ type: "app:get-info" });
-    requestClips();
-
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      unsubscribe();
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [requestClips]);
+  }, [isSettingsOpen, moveSelectedClip, pasteSelectedClip]);
 
-  const selectedClip = useMemo(
-    () => clips.find((clip) => clip.id === selectedClipId) ?? clips[0] ?? null,
-    [clips, selectedClipId],
-  );
+  useEffect(() => {
+    const searchTimer = window.setTimeout(() => {
+      requestClips(query, clipType);
+    }, 75);
+
+    return () => window.clearTimeout(searchTimer);
+  }, [clipType, query, requestClips]);
+
   const settings = appInfo?.settings ?? previewSettings;
   const enabledTools = settings.enabledTools;
   const effectiveActiveTool =
@@ -151,13 +227,8 @@ export default function App() {
       ? enabledTools[0]
       : activeTool;
 
-  function handleSearchSubmit() {
-    requestClips(query, clipType);
-  }
-
   function handleTypeChange(value: string) {
     setClipType(value);
-    requestClips(query, value);
   }
 
   function handlePasteClip(id: string) {
@@ -265,11 +336,6 @@ export default function App() {
           ref={searchInputRef}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              handleSearchSubmit();
-            }
-          }}
           placeholder="grep clipboard"
         />
       </section>
