@@ -12,7 +12,11 @@ namespace TanoDevClip.App
         [STAThread]
         private static void Main(string[] args)
         {
-            VelopackApp.Build().Run();
+            VelopackApp.Build()
+                .OnAfterInstallFastCallback(_ => WindowsStartupRegistration.EnableForCurrentUser())
+                .OnAfterUpdateFastCallback(_ => WindowsStartupRegistration.EnableForCurrentUser())
+                .OnBeforeUninstallFastCallback(_ => WindowsStartupRegistration.DisableForCurrentUser())
+                .Run();
 
             var app = new App();
             app.InitializeComponent();
@@ -45,6 +49,9 @@ namespace TanoDevClip.App
             var devToolRunner = new DevToolRunner(guidGenerator);
             var settingsStore = new JsonAppSettingsStore(AppPaths.GetSettingsPath());
             var settings = await settingsStore.LoadAsync();
+            var startHidden = WindowsStartupRegistration.IsStartupLaunch(e.Args);
+
+            WindowsStartupRegistration.EnableForCurrentUser();
 
             MainWindow = new MainWindow(
                 repository,
@@ -54,6 +61,11 @@ namespace TanoDevClip.App
                 settingsStore,
                 settings);
             MainWindow.Show();
+
+            if (startHidden)
+            {
+                MainWindow.Hide();
+            }
         }
     }
 }

@@ -93,6 +93,7 @@ jobs:
             --mainExe TanoDevClip.App.exe `
             --packTitle "TanoDev Clip" `
             --icon src/TanoDevClip.App/Assets/AppIcon.ico `
+            --shortcuts Desktop,StartMenuRoot `
             --framework webview2
 
       - name: Publish GitHub Release
