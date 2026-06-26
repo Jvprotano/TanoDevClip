@@ -8,6 +8,8 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Microsoft.Web.WebView2.Core;
 using TanoDevClip.Core.Classification;
@@ -48,6 +50,7 @@ namespace TanoDevClip.App
         private const uint VkV = 0x56;
         private const uint VkD = 0x44;
         private const int SwRestore = 9;
+        private const int ImagePreviewMaxPixelSize = 360;
 
         private readonly IClipRepository _clipRepository;
         private readonly IClipboardClassifier _clipboardClassifier;
@@ -60,8 +63,11 @@ namespace TanoDevClip.App
         private Forms.NotifyIcon? _trayIcon;
         private bool _hotKeyRegistered;
         private bool _isExiting;
+        private bool _isPreloadingInBackground;
+        private bool _centerOnNextVisibleShow;
         private string? _lastCapturedHash;
         private string? _ignoreNextClipboardHash;
+        private int _ignoreNextClipboardChanges;
         private AppSettings _settings;
         private IntPtr _returnWindowHandle;
 
@@ -85,6 +91,21 @@ namespace TanoDevClip.App
 
             Loaded += MainWindow_Loaded;
             SourceInitialized += MainWindow_SourceInitialized;
+        }
+
+        public void BeginStartupPreload()
+        {
+            _isPreloadingInBackground = true;
+            _centerOnNextVisibleShow = true;
+
+            ShowActivated = false;
+            ShowInTaskbar = false;
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Opacity = 0;
+            Left = -32000;
+            Top = -32000;
+
+            Show();
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -128,7 +149,17 @@ namespace TanoDevClip.App
                     payload = CreateAppInfoPayload()
                 });
                 await SendClipsListAsync(new ClipSearchFilter());
-                await FocusSearchAsync();
+
+                if (_isPreloadingInBackground)
+                {
+                    CompleteStartupPreload();
+                    return;
+                }
+
+                if (IsVisible)
+                {
+                    await FocusSearchAsync();
+                }
             };
 
             AppWebView.Source = await ResolveUiEntryPointAsync();
@@ -356,7 +387,11 @@ namespace TanoDevClip.App
                 return;
             }
 
-            CopyTextToClipboard(clip.Content);
+            if (!await CopyClipToClipboardAsync(clip))
+            {
+                return;
+            }
+
             await _clipRepository.IncrementUseAsync(id);
             await NotifyClipsUpdatedAsync("copy");
             await SendClipsListAsync(new ClipSearchFilter());
@@ -377,7 +412,11 @@ namespace TanoDevClip.App
                 return;
             }
 
-            CopyTextToClipboard(clip.Content);
+            if (!await CopyClipToClipboardAsync(clip))
+            {
+                return;
+            }
+
             await _clipRepository.IncrementUseAsync(id);
             await NotifyClipsUpdatedAsync("paste");
             await SendClipsListAsync(new ClipSearchFilter());
@@ -589,48 +628,95 @@ namespace TanoDevClip.App
             await SendClipsListAsync(new ClipSearchFilter());
         }
 
-        private async Task CaptureClipboardTextAsync()
+        private async Task CaptureClipboardAsync()
         {
-            string content;
+            ClipItem? clip;
             try
             {
-                if (!System.Windows.Clipboard.ContainsText())
+                if (System.Windows.Clipboard.ContainsImage())
                 {
-                    return;
+                    clip = CreateImageClipFromClipboard();
                 }
-
-                content = System.Windows.Clipboard.GetText();
+                else if (System.Windows.Clipboard.ContainsText())
+                {
+                    clip = CreateTextClipFromClipboard();
+                }
+                else
+                {
+                    clip = null;
+                }
             }
             catch
             {
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(content))
+            if (clip is null)
             {
                 return;
             }
 
-            var hash = ComputeSha256(content);
-            if (hash == _ignoreNextClipboardHash)
+            if (clip.ContentHash == _ignoreNextClipboardHash ||
+                _ignoreNextClipboardChanges > 0)
             {
                 _ignoreNextClipboardHash = null;
+                _ignoreNextClipboardChanges = Math.Max(0, _ignoreNextClipboardChanges - 1);
                 return;
             }
 
-            if (hash == _lastCapturedHash)
+            if (clip.ContentHash == _lastCapturedHash)
             {
                 return;
             }
 
-            _lastCapturedHash = hash;
-            var source = GetForegroundWindowSource();
-            var clipType = _clipboardClassifier.Classify(content);
-            var clip = CreateClipItem(content, clipType, CreateClipTitle(content), source.ProcessName, source.WindowTitle);
-
+            _lastCapturedHash = clip.ContentHash;
             await _clipRepository.SaveAsync(clip);
             await NotifyClipsUpdatedAsync("clipboard");
             await SendClipsListAsync(new ClipSearchFilter());
+        }
+
+        private ClipItem? CreateTextClipFromClipboard()
+        {
+            var content = System.Windows.Clipboard.GetText();
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return null;
+            }
+
+            var source = GetForegroundWindowSource();
+            var clipType = _clipboardClassifier.Classify(content);
+            return CreateClipItem(
+                content,
+                clipType,
+                CreateClipTitle(content),
+                source.ProcessName,
+                source.WindowTitle);
+        }
+
+        private ClipItem? CreateImageClipFromClipboard()
+        {
+            var image = System.Windows.Clipboard.GetImage();
+            if (image is null || image.PixelWidth <= 0 || image.PixelHeight <= 0)
+            {
+                return null;
+            }
+
+            var pngBytes = EncodeBitmapToPng(image);
+            var previewBytes = EncodeBitmapToPng(CreatePreviewBitmap(image));
+            var content = $"Image {image.PixelWidth}x{image.PixelHeight}";
+            var source = GetForegroundWindowSource();
+
+            return CreateClipItem(
+                content,
+                ClipType.Image,
+                content,
+                source.ProcessName,
+                source.WindowTitle,
+                pngBytes,
+                previewBytes,
+                "image/png",
+                image.PixelWidth,
+                image.PixelHeight);
         }
 
         private ClipItem CreateClipItem(
@@ -638,14 +724,28 @@ namespace TanoDevClip.App
             ClipType clipType,
             string? title,
             string? sourceApp,
-            string? sourceWindowTitle)
+            string? sourceWindowTitle,
+            byte[]? binaryContent = null,
+            byte[]? previewContent = null,
+            string? contentMimeType = null,
+            int? imageWidth = null,
+            int? imageHeight = null)
         {
+            var contentHash = binaryContent is null
+                ? ComputeSha256(content)
+                : ComputeSha256(binaryContent);
+
             return new ClipItem
             {
                 Id = Guid.NewGuid().ToString("N"),
                 Content = content,
-                ContentHash = ComputeSha256(content),
+                ContentHash = contentHash,
                 ClipType = clipType,
+                BinaryContent = binaryContent,
+                PreviewContent = previewContent,
+                ContentMimeType = contentMimeType,
+                ImageWidth = imageWidth,
+                ImageHeight = imageHeight,
                 Title = title,
                 SourceApp = sourceApp,
                 SourceWindowTitle = sourceWindowTitle,
@@ -660,7 +760,33 @@ namespace TanoDevClip.App
         private void CopyTextToClipboard(string content)
         {
             _ignoreNextClipboardHash = ComputeSha256(content);
+            _ignoreNextClipboardChanges = 1;
             System.Windows.Clipboard.SetText(content);
+        }
+
+        private async Task<bool> CopyClipToClipboardAsync(ClipItem clip)
+        {
+            if (clip.ClipType == ClipType.Image)
+            {
+                if (clip.BinaryContent is null || clip.BinaryContent.Length == 0)
+                {
+                    await SendErrorAsync("Image data not found.");
+                    return false;
+                }
+
+                CopyImageToClipboard(clip.BinaryContent, clip.ContentHash);
+                return true;
+            }
+
+            CopyTextToClipboard(clip.Content);
+            return true;
+        }
+
+        private void CopyImageToClipboard(byte[] pngBytes, string contentHash)
+        {
+            _ignoreNextClipboardHash = contentHash;
+            _ignoreNextClipboardChanges = 1;
+            System.Windows.Clipboard.SetImage(DecodeBitmapFromPng(pngBytes));
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -676,7 +802,7 @@ namespace TanoDevClip.App
             }
             else if (msg == WmClipboardUpdate)
             {
-                _ = Dispatcher.InvokeAsync(CaptureClipboardTextAsync);
+                _ = Dispatcher.InvokeAsync(CaptureClipboardAsync);
                 handled = true;
             }
             else if (msg == WmHotKey && wParam.ToInt32() == HotKeyId)
@@ -928,6 +1054,10 @@ namespace TanoDevClip.App
                 content = clip.Content,
                 contentHash = clip.ContentHash,
                 clipType = clip.ClipType.ToString(),
+                contentMimeType = clip.ContentMimeType,
+                imageWidth = clip.ImageWidth,
+                imageHeight = clip.ImageHeight,
+                imagePreviewDataUrl = CreateImagePreviewDataUrl(clip),
                 title = clip.Title,
                 sourceApp = clip.SourceApp,
                 sourceWindowTitle = clip.SourceWindowTitle,
@@ -939,10 +1069,66 @@ namespace TanoDevClip.App
             };
         }
 
+        private static string? CreateImagePreviewDataUrl(ClipItem clip)
+        {
+            if (clip.PreviewContent is null || clip.PreviewContent.Length == 0)
+            {
+                return null;
+            }
+
+            var mimeType = string.IsNullOrWhiteSpace(clip.ContentMimeType)
+                ? "image/png"
+                : clip.ContentMimeType;
+
+            return $"data:{mimeType};base64,{Convert.ToBase64String(clip.PreviewContent)}";
+        }
+
         private static string ComputeSha256(string content)
         {
             var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(content));
             return Convert.ToHexString(bytes).ToLowerInvariant();
+        }
+
+        private static string ComputeSha256(byte[] content)
+        {
+            var bytes = SHA256.HashData(content);
+            return Convert.ToHexString(bytes).ToLowerInvariant();
+        }
+
+        private static byte[] EncodeBitmapToPng(BitmapSource source)
+        {
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(source));
+
+            using var stream = new MemoryStream();
+            encoder.Save(stream);
+            return stream.ToArray();
+        }
+
+        private static BitmapSource DecodeBitmapFromPng(byte[] pngBytes)
+        {
+            using var stream = new MemoryStream(pngBytes);
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.StreamSource = stream;
+            image.EndInit();
+            image.Freeze();
+            return image;
+        }
+
+        private static BitmapSource CreatePreviewBitmap(BitmapSource source)
+        {
+            var largestSide = Math.Max(source.PixelWidth, source.PixelHeight);
+            if (largestSide <= ImagePreviewMaxPixelSize)
+            {
+                return source;
+            }
+
+            var scale = ImagePreviewMaxPixelSize / (double)largestSide;
+            var preview = new TransformedBitmap(source, new ScaleTransform(scale, scale));
+            preview.Freeze();
+            return preview;
         }
 
         private static string CreateClipTitle(string content)
@@ -1052,6 +1238,20 @@ namespace TanoDevClip.App
 
         private void ShowWindowForSearch()
         {
+            if (_isPreloadingInBackground)
+            {
+                CompleteStartupPreload();
+            }
+
+            if (_centerOnNextVisibleShow)
+            {
+                CenterOnPrimaryWorkArea();
+                _centerOnNextVisibleShow = false;
+            }
+
+            ShowActivated = true;
+            ShowInTaskbar = true;
+            Opacity = 1;
             Show();
             WindowState = WindowState.Normal;
             Activate();
@@ -1064,6 +1264,27 @@ namespace TanoDevClip.App
             {
                 SetForegroundWindow(handle);
             }
+        }
+
+        private void CompleteStartupPreload()
+        {
+            if (!_isPreloadingInBackground)
+            {
+                return;
+            }
+
+            Hide();
+            Opacity = 1;
+            ShowActivated = true;
+            ShowInTaskbar = true;
+            _isPreloadingInBackground = false;
+        }
+
+        private void CenterOnPrimaryWorkArea()
+        {
+            var workArea = SystemParameters.WorkArea;
+            Left = workArea.Left + Math.Max(0, (workArea.Width - Width) / 2);
+            Top = workArea.Top + Math.Max(0, (workArea.Height - Height) / 2);
         }
 
         private void FocusWebViewForKeyboardInput()

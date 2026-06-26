@@ -25,7 +25,7 @@ namespace TanoDevClip.App
 
         protected override void OnExit(System.Windows.ExitEventArgs e)
         {
-            if (MainWindow is MainWindow mainWindow)
+            if (MainWindow is TanoDevClip.App.MainWindow mainWindow)
             {
                 mainWindow.DisposeTrayIcon();
             }
@@ -60,11 +60,17 @@ namespace TanoDevClip.App
                 devToolRunner,
                 settingsStore,
                 settings);
-            MainWindow.Show();
 
             if (startHidden)
             {
-                MainWindow.Hide();
+                if (MainWindow is TanoDevClip.App.MainWindow mainWindow)
+                {
+                    mainWindow.BeginStartupPreload();
+                }
+            }
+            else
+            {
+                MainWindow.Show();
             }
         }
     }

@@ -9,6 +9,7 @@ export const clipTypes = [
   "Email",
   "Code",
   "Markdown",
+  "Image",
   "Unknown",
 ];
 

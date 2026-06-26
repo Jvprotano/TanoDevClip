@@ -1,6 +1,6 @@
 # TanoDev Clip
 
-TanoDev Clip is a local-first clipboard manager for Windows, built for developers. It captures copied text, classifies common developer content, persists history in SQLite, supports quick paste back into the previously active app, and includes a DevTools panel for small developer utilities.
+TanoDev Clip is a local-first clipboard manager for Windows, built for developers. It captures copied text and images, classifies common developer text content, persists history in SQLite, supports quick paste back into the previously active app, and includes a DevTools panel for small developer utilities.
 
 ## Stack
 
@@ -18,9 +18,10 @@ TanoDev Clip is a local-first clipboard manager for Windows, built for developer
 - Static UI fallback from `src/TanoDevClip.UI/dist/index.html` when the Vite server is unavailable.
 - Global hotkey: `Ctrl+Alt+Space` to show/hide the main window and focus search.
 - Win32 clipboard listener using `AddClipboardFormatListener` and `WM_CLIPBOARDUPDATE`.
-- Automatic text capture with SHA256 content hash.
+- Automatic text and image capture with SHA256 content hash.
+- Image history with PNG persistence and UI previews.
 - SQLite database at `%LocalAppData%/TanoDevClip/tanodevclip.db`.
-- Search by content, title, type, source app and source window title.
+- Search by content/title metadata, type, source app and source window title.
 - Classification for JSON, SQL, URL, JWT, GUID, email and text fallback.
 - Pin/unpin clips, with pinned clips listed first.
 - Copy a clip back to the clipboard.

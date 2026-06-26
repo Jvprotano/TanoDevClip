@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\TanoDevClip.Core\TanoDevClip.Core.csproj" />
     <ProjectReference Include="..\..\src\TanoDevClip.DevTools\TanoDevClip.DevTools.csproj" />
+    <ProjectReference Include="..\..\src\TanoDevClip.Infrastructure\TanoDevClip.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

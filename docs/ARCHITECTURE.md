@@ -25,7 +25,7 @@ Owns the desktop runtime:
 - WebView2 startup and fallback to static UI build.
 - WebView message dispatch.
 - Global hotkey registration.
-- Clipboard listener.
+- Clipboard listener for text and images.
 - Programmatic clipboard writes.
 - Return-window tracking and paste into the previously active app.
 - Settings bridge and hotkey re-registration.
@@ -109,12 +109,13 @@ Settings messages:
 ## Clipboard Flow
 
 1. Windows emits `WM_CLIPBOARDUPDATE`.
-2. `MainWindow` reads text from the system clipboard.
-3. The content is hashed with SHA256.
-4. Programmatic writes are ignored once via `_ignoreNextClipboardHash`.
-5. The classifier determines the clip type.
-6. The clip is saved to SQLite.
-7. The host notifies React with `clips:updated` and sends a fresh list.
+2. `MainWindow` reads image data first when present, otherwise text.
+3. Text is stored as content; images are encoded as PNG with a smaller PNG preview.
+4. The text content or image bytes are hashed with SHA256.
+5. Programmatic writes are ignored once via `_ignoreNextClipboardHash`.
+6. The classifier determines the clip type for text; images use `ClipType.Image`.
+7. The clip is saved to SQLite.
+8. The host notifies React with `clips:updated` and sends a fresh list.
 
 ## Copy vs Paste
 

@@ -31,39 +31,49 @@ export function ClipboardView({
     activeClipRef.current?.scrollIntoView({ block: "nearest" });
   }, [selectedClipId]);
 
+  const selectedClipIsImage = selectedClip?.clipType === "Image";
+
   return (
     <>
       <div className="clip-list" aria-label="Clipboard history">
         {clips.length === 0 ? (
           <div className="empty-state">
-            Copy text anywhere in Windows to fill the history.
+            Copy text or images anywhere in Windows to fill the history.
           </div>
         ) : (
-          clips.map((clip) => (
-            <button
-              key={clip.id}
-              title="double click to paste"
-              className={
-                clip.id === selectedClipId ? "clip-item active" : "clip-item"
-              }
-              ref={clip.id === selectedClipId ? activeClipRef : undefined}
-              onClick={() => onSelectClip(clip.id)}
-              onDoubleClick={() => onPasteClip(clip.id)}
-            >
-              <span className={`clip-type type-${clip.clipType.toLowerCase()}`}>
-                {clip.clipType}
-              </span>
-              <span className="clip-body">
-                <span className="clip-title">
-                  {clip.isPinned && <span className="pin-mark">PIN</span>}
-                  {clip.title || summarize(clip.content)}
+          clips.map((clip) => {
+            const isImage = clip.clipType === "Image";
+            return (
+              <button
+                key={clip.id}
+                title="double click or ENTER to paste"
+                className={[
+                  clip.id === selectedClipId ? "clip-item active" : "clip-item",
+                  isImage ? "has-image" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                ref={clip.id === selectedClipId ? activeClipRef : undefined}
+                onClick={() => onSelectClip(clip.id)}
+                onDoubleClick={() => onPasteClip(clip.id)}
+              >
+                <span
+                  className={`clip-type type-${clip.clipType.toLowerCase()}`}
+                >
+                  {clip.clipType}
                 </span>
-                <span className="clip-meta">
-                  {clip.sourceApp ?? "Unknown"} | {formatDate(clip.createdAt)}
+                <span className="clip-body">
+                  <span className="clip-title">
+                    {clip.isPinned && <span className="pin-mark">PIN</span>}
+                    {clip.title || summarize(clip.content)}
+                  </span>
+                  <span className="clip-meta">
+                    {clip.sourceApp ?? "Unknown"} | {formatDate(clip.createdAt)}
+                  </span>
                 </span>
-              </span>
-            </button>
-          ))
+              </button>
+            );
+          })
         )}
       </div>
 
@@ -79,6 +89,13 @@ export function ClipboardView({
                 >
                   {selectedClip.clipType}
                 </span>
+                {selectedClipIsImage &&
+                  selectedClip.imageWidth &&
+                  selectedClip.imageHeight && (
+                    <span className="image-size">
+                      {selectedClip.imageWidth}x{selectedClip.imageHeight}
+                    </span>
+                  )}
               </div>
 
               <button
@@ -104,7 +121,23 @@ export function ClipboardView({
                 </button>
               </div>
             </div>
-            {!isCollapsed && <pre>{selectedClip.content}</pre>}
+            {!isCollapsed &&
+              (selectedClipIsImage ? (
+                <div className="clip-image-frame">
+                  {selectedClip.imagePreviewDataUrl ? (
+                    <img
+                      src={selectedClip.imagePreviewDataUrl}
+                      alt={selectedClip.title ?? "Copied image"}
+                    />
+                  ) : (
+                    <div className="clip-image-fallback">
+                      {selectedClip.content}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <pre>{selectedClip.content}</pre>
+              ))}
           </>
         )}
       </section>

@@ -20,6 +20,35 @@ namespace TanoDevClip.Infrastructure.Database
                 command.CommandText = statement;
                 await command.ExecuteNonQueryAsync(cancellationToken);
             }
+
+            await EnsureColumnAsync(connection, "binary_content", "BLOB NULL", cancellationToken);
+            await EnsureColumnAsync(connection, "preview_content", "BLOB NULL", cancellationToken);
+            await EnsureColumnAsync(connection, "content_mime_type", "TEXT NULL", cancellationToken);
+            await EnsureColumnAsync(connection, "image_width", "INTEGER NULL", cancellationToken);
+            await EnsureColumnAsync(connection, "image_height", "INTEGER NULL", cancellationToken);
+        }
+
+        private static async Task EnsureColumnAsync(
+            Microsoft.Data.Sqlite.SqliteConnection connection,
+            string columnName,
+            string columnDefinition,
+            CancellationToken cancellationToken)
+        {
+            await using var columnsCommand = connection.CreateCommand();
+            columnsCommand.CommandText = "PRAGMA table_info(clips);";
+
+            await using var reader = await columnsCommand.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                if (reader.GetString(1).Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+
+            await using var alterCommand = connection.CreateCommand();
+            alterCommand.CommandText = $"ALTER TABLE clips ADD COLUMN {columnName} {columnDefinition};";
+            await alterCommand.ExecuteNonQueryAsync(cancellationToken);
         }
 
         private const string Schema = """
@@ -28,6 +57,11 @@ namespace TanoDevClip.Infrastructure.Database
             content TEXT NOT NULL,
             content_hash TEXT NOT NULL,
             clip_type TEXT NOT NULL,
+            binary_content BLOB NULL,
+            preview_content BLOB NULL,
+            content_mime_type TEXT NULL,
+            image_width INTEGER NULL,
+            image_height INTEGER NULL,
             title TEXT NULL,
             source_app TEXT NULL,
             source_window_title TEXT NULL,
@@ -52,4 +86,3 @@ namespace TanoDevClip.Infrastructure.Database
         """;
     }
 }
-

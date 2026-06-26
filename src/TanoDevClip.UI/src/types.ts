@@ -11,6 +11,10 @@ export type ClipItem = {
   content: string;
   contentHash: string;
   clipType: string;
+  contentMimeType?: string | null;
+  imageWidth?: number | null;
+  imageHeight?: number | null;
+  imagePreviewDataUrl?: string | null;
   title?: string | null;
   sourceApp?: string | null;
   sourceWindowTitle?: string | null;

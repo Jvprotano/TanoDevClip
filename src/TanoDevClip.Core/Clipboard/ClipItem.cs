@@ -6,6 +6,11 @@ namespace TanoDevClip.Core.Clipboard
         public required string Content { get; init; }
         public required string ContentHash { get; init; }
         public required ClipType ClipType { get; init; }
+        public byte[]? BinaryContent { get; init; }
+        public byte[]? PreviewContent { get; init; }
+        public string? ContentMimeType { get; init; }
+        public int? ImageWidth { get; init; }
+        public int? ImageHeight { get; init; }
 
         public string? Title { get; init; }
         public string? SourceApp { get; init; }

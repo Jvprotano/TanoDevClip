@@ -27,6 +27,11 @@ namespace TanoDevClip.Infrastructure.Database
                 content,
                 content_hash,
                 clip_type,
+                binary_content,
+                preview_content,
+                content_mime_type,
+                image_width,
+                image_height,
                 title,
                 source_app,
                 source_window_title,
@@ -41,6 +46,11 @@ namespace TanoDevClip.Infrastructure.Database
                 $content,
                 $content_hash,
                 $clip_type,
+                $binary_content,
+                $preview_content,
+                $content_mime_type,
+                $image_width,
+                $image_height,
                 $title,
                 $source_app,
                 $source_window_title,
@@ -76,6 +86,11 @@ namespace TanoDevClip.Infrastructure.Database
                 content,
                 content_hash,
                 clip_type,
+                NULL AS binary_content,
+                preview_content,
+                content_mime_type,
+                image_width,
+                image_height,
                 title,
                 source_app,
                 source_window_title,
@@ -123,6 +138,11 @@ namespace TanoDevClip.Infrastructure.Database
                 content,
                 content_hash,
                 clip_type,
+                binary_content,
+                preview_content,
+                content_mime_type,
+                image_width,
+                image_height,
                 title,
                 source_app,
                 source_window_title,
@@ -180,6 +200,11 @@ namespace TanoDevClip.Infrastructure.Database
             command.Parameters.AddWithValue("$content", clip.Content);
             command.Parameters.AddWithValue("$content_hash", clip.ContentHash);
             command.Parameters.AddWithValue("$clip_type", clip.ClipType.ToString());
+            AddNullableBlobParameter(command, "$binary_content", clip.BinaryContent);
+            AddNullableBlobParameter(command, "$preview_content", clip.PreviewContent);
+            command.Parameters.AddWithValue("$content_mime_type", (object?)clip.ContentMimeType ?? DBNull.Value);
+            command.Parameters.AddWithValue("$image_width", (object?)clip.ImageWidth ?? DBNull.Value);
+            command.Parameters.AddWithValue("$image_height", (object?)clip.ImageHeight ?? DBNull.Value);
             command.Parameters.AddWithValue("$title", (object?)clip.Title ?? DBNull.Value);
             command.Parameters.AddWithValue("$source_app", (object?)clip.SourceApp ?? DBNull.Value);
             command.Parameters.AddWithValue("$source_window_title", (object?)clip.SourceWindowTitle ?? DBNull.Value);
@@ -200,16 +225,34 @@ namespace TanoDevClip.Infrastructure.Database
                 ClipType = Enum.TryParse<ClipType>(reader.GetString(3), out var clipType)
                     ? clipType
                     : ClipType.Unknown,
-                Title = reader.IsDBNull(4) ? null : reader.GetString(4),
-                SourceApp = reader.IsDBNull(5) ? null : reader.GetString(5),
-                SourceWindowTitle = reader.IsDBNull(6) ? null : reader.GetString(6),
-                SourceUrl = reader.IsDBNull(7) ? null : reader.GetString(7),
-                IsPinned = reader.GetInt32(8) == 1,
-                CreatedAt = DateTimeOffset.Parse(reader.GetString(9)),
-                LastUsedAt = reader.IsDBNull(10) ? null : DateTimeOffset.Parse(reader.GetString(10)),
-                UseCount = reader.GetInt32(11)
+                BinaryContent = ReadNullableBlob(reader, 4),
+                PreviewContent = ReadNullableBlob(reader, 5),
+                ContentMimeType = reader.IsDBNull(6) ? null : reader.GetString(6),
+                ImageWidth = reader.IsDBNull(7) ? null : reader.GetInt32(7),
+                ImageHeight = reader.IsDBNull(8) ? null : reader.GetInt32(8),
+                Title = reader.IsDBNull(9) ? null : reader.GetString(9),
+                SourceApp = reader.IsDBNull(10) ? null : reader.GetString(10),
+                SourceWindowTitle = reader.IsDBNull(11) ? null : reader.GetString(11),
+                SourceUrl = reader.IsDBNull(12) ? null : reader.GetString(12),
+                IsPinned = reader.GetInt32(13) == 1,
+                CreatedAt = DateTimeOffset.Parse(reader.GetString(14)),
+                LastUsedAt = reader.IsDBNull(15) ? null : DateTimeOffset.Parse(reader.GetString(15)),
+                UseCount = reader.GetInt32(16)
             };
+        }
+
+        private static void AddNullableBlobParameter(SqliteCommand command, string name, byte[]? value)
+        {
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = name;
+            parameter.SqliteType = SqliteType.Blob;
+            parameter.Value = value is null ? DBNull.Value : value;
+            command.Parameters.Add(parameter);
+        }
+
+        private static byte[]? ReadNullableBlob(SqliteDataReader reader, int ordinal)
+        {
+            return reader.IsDBNull(ordinal) ? null : (byte[])reader.GetValue(ordinal);
         }
     }
 }
-

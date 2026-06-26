@@ -11,7 +11,7 @@ namespace TanoDevClip.Core.Clipboard
         Email,
         Code,
         Markdown,
+        Image,
         Unknown
     }
 }
-

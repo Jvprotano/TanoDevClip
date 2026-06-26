@@ -30,7 +30,7 @@
 
 ## What is TanoDev Clip?
 
-TanoDev Clip keeps a searchable history of the text you copy and lets you quickly paste it back into your previous application.
+TanoDev Clip keeps a searchable history of the text and images you copy and lets you quickly paste them back into your previous application.
 
 Press `Ctrl + Alt + Space`, find the content you need, and double-click it to paste.
 
@@ -38,7 +38,8 @@ Everything is stored locally on your computer.
 
 ## Features
 
-- Searchable clipboard history.
+- Searchable clipboard history for text and images.
+- Image previews in history.
 - Configurable global hotkey.
 - Paste directly into the previously active application.
 - Pin frequently used clips.

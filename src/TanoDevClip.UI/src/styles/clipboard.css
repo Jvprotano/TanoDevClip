@@ -73,6 +73,10 @@
   color: #ff9f43;
 }
 
+.type-image {
+  color: #ff7ad9;
+}
+
 .clip-body,
 .clip-title {
   min-width: 0;
@@ -94,6 +98,12 @@
   content: "$";
   flex: 0 0 auto;
   color: var(--green);
+}
+
+.clip-item.has-image .clip-title::before {
+  content: "img";
+  color: #ff7ad9;
+  font-size: 9px;
 }
 
 .pin-mark {
@@ -150,6 +160,7 @@
 
 .detail-left {
   justify-content: flex-start;
+  gap: 6px;
 }
 
 .detail-right {
@@ -182,6 +193,14 @@
   background: rgba(255, 209, 102, 0.1) !important;
 }
 
+.image-size {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .clip-detail pre {
   min-height: 0;
   margin: 0 6px 6px;
@@ -195,6 +214,36 @@
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.clip-image-frame {
+  display: grid;
+  min-height: 0;
+  margin: 0 6px 6px;
+  border: 1px solid var(--terminal-line);
+  border-radius: 2px;
+  background:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%) 0 0 /
+      14px 14px,
+    linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.04) 75%) 0 0 /
+      14px 14px,
+    #040708;
+  overflow: hidden;
+  place-items: center;
+}
+
+.clip-image-frame img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 82px;
+  object-fit: contain;
+}
+
+.clip-image-fallback {
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .collapse-btn {
