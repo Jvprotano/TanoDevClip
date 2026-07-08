@@ -108,6 +108,47 @@ namespace TanoDevClip.Tests
             Assert.Equal(previewBytes, fullClip.PreviewContent);
         }
 
+        [Fact]
+        public async Task Should_move_existing_clip_to_top_when_same_content_is_copied_again()
+        {
+            var connectionFactory = new DatabaseConnectionFactory(_databasePath);
+            var bootstrapper = new DatabaseBootstrapper(connectionFactory);
+            await bootstrapper.InitializeAsync();
+
+            var repository = new SqliteClipRepository(connectionFactory);
+            var baseTime = DateTimeOffset.UtcNow;
+
+            await repository.SaveAsync(CreateTextClip("clip-a", "content a", "hash-a", baseTime));
+            await repository.SaveAsync(CreateTextClip("clip-b", "content b", "hash-b", baseTime.AddMinutes(1)));
+            await repository.SaveAsync(CreateTextClip("clip-a-copy", "content a", "hash-a", baseTime.AddMinutes(2)));
+
+            var clips = await repository.SearchAsync(new ClipSearchFilter());
+
+            Assert.Equal(2, clips.Count);
+            Assert.Equal("clip-a", clips[0].Id);
+            Assert.Equal("clip-b", clips[1].Id);
+            Assert.Equal(baseTime.AddMinutes(2), clips[0].CreatedAt);
+        }
+
+        private static ClipItem CreateTextClip(string id, string content, string contentHash, DateTimeOffset createdAt)
+        {
+            return new ClipItem
+            {
+                Id = id,
+                Content = content,
+                ContentHash = contentHash,
+                ClipType = ClipType.Text,
+                Title = content,
+                SourceApp = "Tests",
+                SourceWindowTitle = "Test Window",
+                SourceUrl = null,
+                IsPinned = false,
+                CreatedAt = createdAt,
+                LastUsedAt = null,
+                UseCount = 0
+            };
+        }
+
         public void Dispose()
         {
             try

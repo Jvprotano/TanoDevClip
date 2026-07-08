@@ -18,8 +18,26 @@ namespace TanoDevClip.Infrastructure.Database
             await using var connection = _connectionFactory.CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            // MVP rule: repeated content is ignored by hash. Later this can evolve to
-            // update recency or move duplicate handling into a richer domain service.
+            // Repeated content is deduplicated by hash, but a fresh copy still moves
+            // the existing clip back to the top of the history.
+            await using var updateCommand = connection.CreateCommand();
+            updateCommand.CommandText = """
+            UPDATE clips
+            SET created_at = $created_at,
+                source_app = $source_app,
+                source_window_title = $source_window_title
+            WHERE content_hash = $content_hash;
+            """;
+            updateCommand.Parameters.AddWithValue("$content_hash", clip.ContentHash);
+            updateCommand.Parameters.AddWithValue("$created_at", clip.CreatedAt.ToString("O"));
+            updateCommand.Parameters.AddWithValue("$source_app", (object?)clip.SourceApp ?? DBNull.Value);
+            updateCommand.Parameters.AddWithValue("$source_window_title", (object?)clip.SourceWindowTitle ?? DBNull.Value);
+
+            if (await updateCommand.ExecuteNonQueryAsync(cancellationToken) > 0)
+            {
+                return;
+            }
+
             await using var command = connection.CreateCommand();
             command.CommandText = """
             INSERT INTO clips (

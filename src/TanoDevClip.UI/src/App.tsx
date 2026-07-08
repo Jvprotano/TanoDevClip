@@ -30,6 +30,7 @@ export default function App() {
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
   const [bridgeAvailable] = useState(() => tanoDevBridge.isAvailable());
   const [clips, setClips] = useState<ClipItem[]>([]);
+  const clipsRef = useRef<ClipItem[]>([]);
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [clipType, setClipType] = useState("All");
@@ -102,6 +103,7 @@ export default function App() {
       if (message.type === "clips:list-result") {
         const payload = message.payload as { clips: ClipItem[] };
         const nextClips = payload.clips ?? [];
+        clipsRef.current = nextClips;
         setClips(nextClips);
         setSelectedClipId((currentId) => {
           if (nextClips.length === 0) {
@@ -144,6 +146,7 @@ export default function App() {
 
       if (message.type === "app:focus-search") {
         setIsDevToolsOpen(false);
+        setSelectedClipId(clipsRef.current[0]?.id ?? null);
         window.setTimeout(() => searchInputRef.current?.focus(), 0);
       }
     });
